@@ -18,7 +18,7 @@ Esta hoja de referencia está inspirada en el repositorio [PayloadAllTheThings](
 - [BloodHound remoto](#remote-bloodhound)
 - [BloodHound local](#on-site-bloodhound)
 - [Uso de Adalanche](#using-adalanche)
-- [Remoto [adalanche](#remote-adalanche)
+- [Remoto adalanche](#remote-adalanche)
 - [Exportar objetos enumerados](#export-enumerated-objects)
 - [Herramientas útiles de enumeración](#useful-enumeration-tools)
 - [Escalada de privilegios locales](#local-privilege-escalation)
